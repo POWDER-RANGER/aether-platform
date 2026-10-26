@@ -8,6 +8,8 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 
 ## Status
 
+Full build status with evidence: `docs/STATUS.md`.
+
 | Part | Status |
 | --- | --- |
 | Charter, ecosystem map, decision register, reference inventory | Draft for owner review |
@@ -15,6 +17,7 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 | Repository hygiene (secrets policy, boundary tests, workstation setup) | VERIFIED: boundary tests in CI (PR #1) |
 | AACP | Proposed specification |
 | Control foundation (`aether.control`): signed intent, Governor, hash-chained log, motor model, virtual pads | Ported in M1; see `docs/verification/M1-CONTROL.md` |
+| Keyboard/mouse output (`aether.control.kbm`) | M1.1; see `docs/verification/M1.1-KEYBOARD-MOUSE.md` |
 | Platform runtime (agents, tasks, policy engine, events), PR-REX perception and intelligence | NOT IMPLEMENTED |
 
 ## Layout (directories appear when their first file does)
@@ -40,6 +43,7 @@ python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"          # add ,windows for virtual pads and capture
 .venv\Scripts\python -m pytest -q
 .venv\Scripts\python -m aether padtest --output x360 --readback   # Windows + ViGEmBus
+.venv\Scripts\python -m aether kbmtest                            # Windows; opens its own test window
 ```
 
 ## Design system in one minute

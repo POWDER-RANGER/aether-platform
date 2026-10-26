@@ -3,6 +3,7 @@
 
 DryRunAdapter   records frames (tests, rehearsal without a game)
 VGamepadAdapter virtual Xbox 360 or DualShock 4 via ViGEmBus (Windows)
+KeyboardMouseAdapter keyboard and mouse via SendInput (Windows), in kbm.py
 
 A future PicoHIDAdapter (hardware USB controller over serial) implements the
 same three methods.
@@ -154,7 +155,23 @@ class VGamepadAdapter(OutputAdapter):
         pad.update()
 
 
-def make_adapter(kind: str, record_path: str | Path | None = None, invert_y: bool = False) -> OutputAdapter:
+def make_adapter(
+    kind: str,
+    record_path: str | Path | None = None,
+    invert_y: bool = False,
+    kbm: dict | None = None,
+    focus=None,
+) -> OutputAdapter:
+    """kind: dryrun | x360 | ds4 | kbm. `kbm` is the settings section {map, threshold, mouse_px_per_s};
+    `focus` (kbm only) releases every key and button whenever the target window is not in front."""
+    if kind == "kbm":
+        from .kbm import KbmMapping, KeyboardMouseAdapter
+
+        if focus is None:  # fail closed: without a focus check, keystrokes could land in any window
+            raise ValueError("kbm output needs a focus check (the target window must be known)")
+        k = kbm or {}
+        mapping = KbmMapping.from_dict(k.get("map"), k.get("threshold", 0.5), k.get("mouse_px_per_s", 900.0))
+        return KeyboardMouseAdapter(mapping, focus=focus)
     if kind == "dryrun":
         return DryRunAdapter(record_path)
     if kind in ("x360", "ds4"):

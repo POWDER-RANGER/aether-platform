@@ -29,6 +29,7 @@ class Settings:
     motor: MotorProfile = field(default_factory=MotorProfile)
     profile_name: str = "default"
     mode: str = "companion"  # companion | research
+    kbm: dict = field(default_factory=dict)  # keyboard/mouse output: {map, threshold, mouse_px_per_s}
 
 
 # Human-limit bounds every companion session must satisfy. Research mode may
@@ -100,5 +101,6 @@ def load_settings(config_path: str | Path | None = None, profile_path: str | Pat
         motor=MotorProfile.from_dict(raw.get("motor")),
         profile_name=profile_name,
         mode=raw.get("mode", "companion"),
+        kbm=dict(raw.get("kbm") or {}),
     )
     return s

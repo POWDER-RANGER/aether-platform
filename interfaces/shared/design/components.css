@@ -1,0 +1,162 @@
+/* Æther component library 0.1. Requires interfaces/shared/design/tokens.css. Spec: interfaces/shared/design/DESIGN-SYSTEM.md.
+   Square corners, 1px hairlines, 2px seams, mono uppercase labels. No component uses --hot as text. */
+
+*,*::before,*::after{box-sizing:border-box}
+.ae{margin:0;background:var(--bg);color:var(--txt);font:400 var(--fs-body)/1.55 var(--sans);-webkit-text-size-adjust:100%}
+.ae :focus-visible{outline:var(--b-focus) solid var(--focus);outline-offset:2px;border-radius:var(--r-focus)}
+.ae a{color:var(--acc)}
+@media (prefers-reduced-motion:reduce){.ae *{animation:none!important;transition:none!important}}
+
+/* ---------- Primitives ---------- */
+.kick{font:600 var(--fs-label)/1.7 var(--mono);letter-spacing:.28em;text-transform:uppercase;color:var(--mut)}
+.kick::before{content:"";display:inline-block;width:9px;height:9px;background:var(--acc);margin-right:12px;vertical-align:-1px}
+.h-display{font:800 var(--fs-h2)/1 var(--display);letter-spacing:.05em;text-transform:uppercase;margin:0}
+.h-card{font:800 var(--fs-h3)/1.1 var(--display);letter-spacing:.1em;text-transform:uppercase;margin:0 0 var(--s-2)}
+.label{font:700 var(--fs-label)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase}
+.muted{color:var(--mut)}
+
+.chip{display:inline-flex;align-items:center;gap:var(--s-2);font:600 var(--fs-chip)/1 var(--mono);letter-spacing:.18em;
+  text-transform:uppercase;border:var(--b-hair) solid var(--acc);color:var(--acc);padding:9px 12px;background:var(--fill)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);min-height:var(--target-min);
+  font:700 var(--fs-label)/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;cursor:pointer;
+  padding:0 20px;border:var(--b-hair) solid var(--acc);color:var(--acc);background:var(--fill)}
+.btn:hover{filter:brightness(1.12)}
+.btn.primary{background:linear-gradient(180deg,var(--hot),var(--maroon));color:#fff;border-color:var(--hi);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 16px -6px rgba(0,0,0,.8)}
+.btn[disabled],.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;filter:none}
+
+.plate{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:var(--b-hair) solid var(--line)}
+.plate::after{content:"";position:absolute;inset:7px;pointer-events:none;border:var(--b-hair) solid var(--line);opacity:.6}
+.plate.bracket::before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;
+  border-left:var(--b-seam) solid var(--acc);border-top:var(--b-seam) solid var(--acc)}
+.rule{width:150px;height:6px;background:linear-gradient(90deg,var(--hot) 0 62%,var(--acc) 62%)}
+.hazard{height:12px;background:repeating-linear-gradient(-45deg,var(--acc) 0 14px,var(--bg) 14px 28px);border-top:var(--b-seam) solid var(--seam)}
+.seam{height:0;border-top:var(--b-seam) solid var(--seam);box-shadow:0 1px 0 var(--hi)}
+
+/* ---------- Status vocabulary ---------- */
+/* Status badge: evidence classification of a capability (project instructions section 10).
+   Text label is mandatory; shape and color repeat it. */
+.status{display:inline-flex;align-items:center;gap:6px;font:700 10.5px/1 var(--mono);letter-spacing:.16em;padding:6px 8px;
+  border:var(--b-hair) solid currentColor;white-space:nowrap;text-transform:uppercase}
+.status::before{content:"";flex:none;width:8px;height:8px;background:currentColor}
+.status[data-status="verified"]{color:var(--ok)}
+.status[data-status="partial"]{color:var(--ok)}
+.status[data-status="partial"]::before{background:linear-gradient(90deg,currentColor 50%,transparent 50%);border:1px solid currentColor}
+.status[data-status="unverified"]{color:var(--warn)}
+.status[data-status="unverified"]::before{background:transparent;border:2px solid currentColor}
+.status[data-status="failed"]{color:var(--bad)}
+.status[data-status="failed"]::before{clip-path:polygon(15% 0,50% 35%,85% 0,100% 15%,65% 50%,100% 85%,85% 100%,50% 65%,15% 100%,0 85%,35% 50%,0 15%)}
+.status[data-status="blocked"]{color:var(--warn)}
+.status[data-status="blocked"]::before{height:3px}
+.status[data-status="none"]{color:var(--mut)}
+.status[data-status="none"]::before{background:transparent;border:1px dashed currentColor}
+
+/* Operational state: what a component is doing right now. Never one generic green for all of these. */
+.op{display:inline-flex;align-items:center;gap:6px;font:700 10.5px/1 var(--mono);letter-spacing:.16em;padding:6px 8px;
+  white-space:nowrap;text-transform:uppercase;border:var(--b-hair) solid var(--line);color:var(--mut)}
+.op::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;border:2px solid currentColor}
+.op[data-op="unavailable"]::before{border-style:dashed}
+.op[data-op="enabled"]{color:var(--txt)}
+.op[data-op="authorized"],.op[data-op="active"]{color:var(--acc);border-color:currentColor}
+.op[data-op="active"]::before{background:currentColor}
+.op[data-op="executing"]{color:var(--ok);border-color:currentColor}
+.op[data-op="executing"]::before{background:currentColor;box-shadow:0 0 0 3px var(--bg),0 0 0 4px currentColor}
+.op[data-op="completed"]{color:var(--ok)}
+.op[data-op="completed"]::before{border-radius:0;border-width:0 2px 2px 0;width:5px;height:9px;transform:rotate(45deg)}
+.op[data-op="failed"]{color:var(--bad);border-color:currentColor}
+.op[data-op="failed"]::before{border-radius:0;background:currentColor}
+@media (prefers-reduced-motion:no-preference){.op[data-op="executing"]::before{animation:op-pulse 1.2s ease-in-out infinite}}
+@keyframes op-pulse{50%{box-shadow:0 0 0 3px var(--bg),0 0 0 6px transparent}}
+
+/* Demo frame: anything not wired to real data is wrapped in this. */
+.demo-frame{position:relative;border:var(--b-hair) dashed var(--mut);padding:var(--s-5) var(--s-4) var(--s-4)}
+.demo-frame::before{content:"DEMO ONLY · NOT LIVE DATA";position:absolute;top:-9px;left:12px;padding:0 6px;background:var(--bg);
+  font:700 10px/18px var(--mono);letter-spacing:.18em;color:var(--mut)}
+
+/* Control state: who is driving the pad right now (PR-REX player surfaces). */
+.control{display:flex;align-items:center;gap:var(--s-3);min-height:var(--target-player);padding:0 var(--s-4);
+  border:var(--b-seam) solid currentColor;font:800 22px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
+.control .label{font-size:11px;color:var(--mut)}
+.control[data-control="player"]{color:var(--acc)}
+.control[data-control="companion"]{color:var(--ok)}
+.control[data-control="idle"]{color:var(--mut)}
+.control[data-control="halted"]{color:var(--bad);background:repeating-linear-gradient(-45deg,transparent 0 10px,rgba(236,112,89,.12) 10px 20px)}
+
+/* Stop control: always reachable, never hidden behind a menu, never smaller than --target-player. */
+.stop{min-width:var(--target-player);min-height:var(--target-player);padding:0 var(--s-5);border:var(--b-seam) solid var(--bad);
+  background:var(--bad);color:var(--bg);font:800 20px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.stop:hover{filter:brightness(1.08)}
+
+/* Mode banner: names the active configuration so a research run is never mistaken for the companion runtime. */
+.mode{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-3);padding:var(--s-2) var(--s-4);border-bottom:var(--b-seam) solid var(--seam);
+  font:700 var(--fs-label)/1.4 var(--mono);letter-spacing:.2em;text-transform:uppercase;background:var(--panel)}
+.mode b{color:var(--acc)}
+
+/* ---------- Patterns ---------- */
+.card{padding:26px 24px 28px}
+.card p{margin:0;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s-5)}
+
+/* Evidence table: one row per claim; collapses to stacked rows on compact widths. */
+.evidence{width:100%;border-collapse:collapse;font-size:15px}
+.evidence th{font:700 11px/1.2 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--mut);text-align:left;padding:var(--s-3);border-bottom:var(--b-seam) solid var(--seam)}
+.evidence td{padding:var(--s-3);border-bottom:var(--b-hair) solid var(--line);vertical-align:top}
+.evidence code{font:13px/1.4 var(--mono);color:var(--mut)}
+@media (max-width:599px){
+  .evidence thead{display:none}
+  .evidence,.evidence tbody,.evidence tr,.evidence td{display:block}
+  .evidence tr{padding:var(--s-3) 0;border-bottom:var(--b-seam) solid var(--seam)}
+  .evidence td{border:0;padding:3px 0}
+  .evidence td[data-k]::before{content:attr(data-k) " ";font:700 10px/1 var(--mono);letter-spacing:.16em;color:var(--mut);display:block;margin-bottom:2px}
+}
+
+/* Timeline: AACP task history and session events. */
+.timeline{list-style:none;margin:0;padding:0 0 0 var(--s-5);border-left:var(--b-seam) solid var(--line)}
+.timeline li{position:relative;padding:0 0 var(--s-5)}
+.timeline li::before{content:"";position:absolute;left:calc(-1 * var(--s-5) - 6px);top:6px;width:10px;height:10px;background:var(--bg);border:var(--b-seam) solid var(--acc)}
+.timeline time{display:block;font:600 11px/1.4 var(--mono);letter-spacing:.14em;color:var(--mut)}
+
+/* Metric tile: a number plus its unit and its source. A tile without a source is not allowed. */
+.metric{padding:var(--s-4)}
+.metric .v{font:800 40px/1 var(--display);letter-spacing:.04em}
+.metric .u{font:600 12px/1 var(--mono);color:var(--mut);margin-left:4px}
+.metric .src{margin-top:var(--s-2);font:500 11px/1.4 var(--mono);color:var(--mut)}
+
+/* Log view: monospace, wraps, never horizontally scrolls the page. */
+.log{font:13px/1.55 var(--mono);background:var(--ink);color:var(--txt);padding:var(--s-4);border:var(--b-hair) solid var(--line);
+  overflow-wrap:anywhere;white-space:pre-wrap;max-height:320px;overflow:auto}
+
+/* ---------- Application shell ---------- */
+/* compact <600: top bar + bottom nav. medium 600-839: rail. expanded >=840: rail + content + aside. large >=1200: wider aside. */
+.shell{min-height:100dvh;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto;
+  grid-template-areas:"top" "mode" "main" "nav"}
+.shell-top{grid-area:top;display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:var(--s-3) var(--s-4);
+  border-bottom:var(--b-seam) solid var(--seam);background:var(--panel)}
+.shell-mode{grid-area:mode}
+.shell-main{grid-area:main;padding:var(--s-5) var(--s-4);min-width:0}
+.shell-aside{display:none}
+.shell-nav{grid-area:nav;display:flex;justify-content:space-around;border-top:var(--b-seam) solid var(--seam);background:var(--panel);
+  position:sticky;bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+.shell-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:var(--target-player);
+  color:var(--mut);text-decoration:none;font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.shell-nav a[aria-current="page"]{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
+.wordmark{font:800 22px/1 var(--display);letter-spacing:.3em;color:var(--txt);text-decoration:none}
+@media (min-width:600px){
+  .shell{grid-template-columns:96px 1fr;grid-template-rows:auto auto 1fr;grid-template-areas:"top top" "mode mode" "nav main"}
+  .shell-nav{flex-direction:column;justify-content:flex-start;border-top:0;border-right:var(--b-seam) solid var(--seam);position:static;padding:var(--s-3) 0}
+  .shell-nav a{flex:0 0 auto;min-height:72px}
+  .shell-nav a[aria-current="page"]{box-shadow:inset 3px 0 0 var(--acc)}
+  .shell-main{padding:var(--s-6)}
+}
+@media (min-width:840px){
+  .shell{grid-template-columns:96px 1fr 300px;grid-template-areas:"top top top" "mode mode mode" "nav main aside"}
+  .shell-aside{display:block;grid-area:aside;padding:var(--s-6) var(--s-5);border-left:var(--b-seam) solid var(--seam);background:var(--panel)}
+}
+@media (min-width:1200px){.shell{grid-template-columns:200px 1fr 360px}.shell-nav a{flex-direction:row;justify-content:flex-start;padding:0 var(--s-5);gap:var(--s-3)}}
+/* Foldables spanning a vertical hinge: main on one segment, aside on the other; nothing straddles the fold. */
+@media (horizontal-viewport-segments:2){
+  .shell{grid-template-columns:96px calc(env(viewport-segment-right 0 0) - 96px) calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0)) 1fr;
+    grid-template-areas:"top top top top" "mode mode mode mode" "nav main hinge aside"}
+  .shell-aside{display:block;grid-area:aside}
+}

@@ -1,0 +1,53 @@
+name: AACP task (proposed)
+description: Register a substantial engineering task under AACP 0.1 (protocols/aacp/specification/AACP.md). Proposed; not in force until accepted.
+title: "[task] "
+labels: ["aacp:task"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: One or two sentences. What changes when this is done.
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      description: One checkable line each. A reviewer must be able to re-run or inspect every one.
+      value: "- [ ] "
+    validations:
+      required: true
+  - type: input
+    id: base
+    attributes:
+      label: Base commit
+      description: Branch and short SHA the work starts from.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: In scope, and explicitly out of scope.
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies
+  - type: input
+    id: agents
+    attributes:
+      label: Agents
+      description: "Platform/model, e.g. claude/claude-opus-5-5, chatgpt/<model>"
+  - type: dropdown
+    id: class
+    attributes:
+      label: Acceptance class
+      options:
+        - A, routine
+        - B, significant (architecture, interfaces, security, Governor)
+        - C, owner (mission, authority, safety invariants, scope)
+    validations:
+      required: true

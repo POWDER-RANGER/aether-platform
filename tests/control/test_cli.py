@@ -40,3 +40,18 @@ def test_dryrun_padtest_produces_valid_chained_log(tmp_path, monkeypatch):
     assert len(logs) == 1
     ok, n, _, problem = verify_log(logs[0])
     assert ok and n > len(padtest_steps()), problem
+
+
+def test_padtest_covers_every_control():
+    from aether.control.intent import BUTTONS
+
+    steps = padtest_steps()
+    pressed = [b for _, f in steps for b in f.buttons]
+    assert sorted(pressed) == sorted(BUTTONS) and len(BUTTONS) == 15  # each mapped button exactly once
+    assert set(XINPUT_BITS) == set(BUTTONS)
+    for axis in ("lx", "ly", "rx", "ry"):
+        values = {getattr(f, axis) for _, f in steps}
+        assert any(v > 0.5 for v in values) and any(v < -0.5 for v in values), f"{axis} needs both directions"
+    for trig in ("lt", "rt"):
+        assert any(getattr(f, trig) > 0.5 for _, f in steps)
+    assert steps[-1][1] == GamepadFrame()  # ends at neutral

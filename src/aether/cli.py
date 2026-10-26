@@ -18,24 +18,14 @@ import sys
 import time
 from pathlib import Path
 
-from .control.intent import GamepadFrame, IntentPacket, Source
+from .control.intent import BUTTONS, GamepadFrame, IntentPacket, Source
 from .control.settings import load_settings
 
-BUTTON_STEPS = (
-    "SOUTH",
-    "EAST",
-    "WEST",
-    "NORTH",
-    "LEFT_SHOULDER",
-    "RIGHT_SHOULDER",
-    "DPAD_UP",
-    "DPAD_DOWN",
-    "DPAD_LEFT",
-    "DPAD_RIGHT",
-)
+BUTTON_STEPS = BUTTONS  # all 15 mapped buttons, including START, BACK, GUIDE and both thumb clicks
 XINPUT_BITS = {
     "DPAD_UP": 0x0001, "DPAD_DOWN": 0x0002, "DPAD_LEFT": 0x0004, "DPAD_RIGHT": 0x0008,
-    "LEFT_SHOULDER": 0x0100, "RIGHT_SHOULDER": 0x0200,
+    "START": 0x0010, "BACK": 0x0020, "LEFT_THUMB": 0x0040, "RIGHT_THUMB": 0x0080,
+    "LEFT_SHOULDER": 0x0100, "RIGHT_SHOULDER": 0x0200, "GUIDE": 0x0400,
     "SOUTH": 0x1000, "EAST": 0x2000, "WEST": 0x4000, "NORTH": 0x8000,
 }  # fmt: skip
 
@@ -47,6 +37,8 @@ def padtest_steps() -> list[tuple[str, GamepadFrame]]:
         ("Left stick LEFT", GamepadFrame(lx=-0.8)),
         ("Left stick RIGHT", GamepadFrame(lx=0.8)),
         ("Right stick UP", GamepadFrame(ry=0.8)),
+        ("Right stick DOWN", GamepadFrame(ry=-0.8)),
+        ("Right stick LEFT", GamepadFrame(rx=-0.8)),
         ("Right stick RIGHT", GamepadFrame(rx=0.8)),
         ("Left trigger", GamepadFrame(lt=1.0)),
         ("Right trigger", GamepadFrame(rt=1.0)),
@@ -69,10 +61,17 @@ class _State(ctypes.Structure):
 class XInputReader:
     def __init__(self) -> None:
         self._dll = ctypes.WinDLL("xinput1_4")
+        # XInputGetStateEx (ordinal 100) also reports the GUIDE button; XInputGetState does not.
+        try:
+            self._get = self._dll[100]
+            self.reports_guide = True
+        except (AttributeError, OSError):
+            self._get = self._dll.XInputGetState
+            self.reports_guide = False
 
     def read(self, index: int) -> dict | None:
         st = _State()
-        if self._dll.XInputGetState(index, ctypes.byref(st)) != 0:
+        if self._get(index, ctypes.byref(st)) != 0:
             return None
         g = st.Gamepad
         return {"buttons": g.wButtons, "lt": g.bLeftTrigger, "rt": g.bRightTrigger,

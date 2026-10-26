@@ -72,7 +72,11 @@ def test_secret_looking_fields_are_redacted_at_any_depth(tmp_path):
     b.publish(
         "governor.record",
         "test",
-        {"kind": "x", "session_key": "SECRET-VALUE-1", "nested": {"api_token": "SECRET-VALUE-2", "keys": ["K"], "bindings": ["W"]}},
+        {
+            "kind": "x",
+            "session_key": "SECRET-VALUE-1",
+            "nested": {"api_token": "SECRET-VALUE-2", "keys": ["K"], "bindings": ["W"]},
+        },
     )
     store.close()
     raw = store.path.read_text(encoding="utf-8")

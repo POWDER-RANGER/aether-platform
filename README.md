@@ -12,7 +12,7 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 | --- | --- |
 | Charter, ecosystem map, decision register, reference inventory | Draft for owner review |
 | Design system (tokens, components, gallery, tests) | VERIFIED: tests pass, rendering checked |
-| Repository hygiene (secrets policy, boundary tests, workstation setup) | In progress on PR #1 |
+| Repository hygiene (secrets policy, boundary tests, workstation setup) | VERIFIED: boundary tests in CI (PR #1) |
 | AACP | Proposed specification |
 | Platform core, PR-REX runtime, Governor | NOT IMPLEMENTED here; verified reference code to be ported (D-014) |
 

@@ -8,9 +8,9 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 | --- | --- |
 | Repository | `POWDER-RANGER/aether-platform`, public, MIT (`LICENSE`); third-party terms in `THIRD-PARTY.md` (NitroGen: NVIDIA non-commercial research only, never committed) |
 | Reference | `POWDER-RANGER/powder-ranger-bot`: retired, read-only; ported from `ad15296`; never modified |
-| `main` | `939f8bd` foundation → `0fc63c2` PR #1 hygiene (merged) |
-| PR #2 `m1/control-foundation` → `main` | Open. HEAD `efb6ace`. Independent review (grok lane) approved on `c150ca9`; findings 1–5 addressed in `9db5d73`; flaky-test fix `efb6ace`. CI 4/4. Awaiting owner merge |
-| PR #3 `m1.1/keyboard-mouse` → `m1/control-foundation` | Open. HEAD at the commit that adds this file. CI 4/4 on `992653f`. Needs independent review (class B) |
+| `main` | `939f8bd` foundation → `0fc63c2` PR #1 hygiene → `4ab4390` PR #2 control foundation (all merged) |
+| PR #2 `m1/control-foundation` | Merged as `4ab4390` (squash). Reviewed by the second AI agent (approved; findings 1–5 fixed; flaky-test fix) |
+| PR #3 `m1.1/keyboard-mouse` → `main` | Review findings 1–2 (focus invariant) fixed with regression tests; merged per D-022 when CI passes on `main` |
 | CI | GitHub Actions: Ubuntu + Windows × Python 3.11 + 3.13: install, token check, pytest, ruff check, ruff format |
 | Repository protections | Secret scanning, push protection, Dependabot security updates on. Branch protection for `main` proposed (D-017), not applied |
 
@@ -46,14 +46,13 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 
 ## 3. Numbers
 
-- Tests: 132 on `m1.1/keyboard-mouse` (113 on `m1/control-foundation`); full suite 10/10 repeated runs clean on the MSI after the flaky-test fix.
+- Tests: 136 with M1.1 (113 for M1 alone); full suite 10/10 repeated runs clean on the MSI after the flaky-test fix.
 - Hardware runs on the MSI: pad 6 full + 2 stop runs; keyboard/mouse 11 exploratory + 10 clean + 1 stop run; every intent log chain + seal OK.
 
 ## 4. Open decisions (owner)
 
 | ID | Decision |
 | --- | --- |
-| — | Merge PR #2; route PR #3 to independent review |
 | D-017 | Protect `main` (PR + CI required, admins not locked out) |
 | D-013 | Accept or amend the charter |
 | D-006 | Application interface technology (recommendation: local web UI served by the runtime, read-only first) |
@@ -62,7 +61,7 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 
 ## 5. Next engineering steps (in order)
 
-1. After PR #2 and #3 merge: first runtime slice: versioned settings schema, a local event bus, agent identity and lifecycle, with the Governor publishing its decisions and state changes as events.
+1. First runtime slice: versioned settings schema, a local event bus, agent identity and lifecycle, with the Governor publishing its decisions and state changes as events.
 2. Recording: synchronized frames, player input, intended / commanded / delivered actions, from the event bus.
 3. Engineering scorecard E-01 – E-10 and the first Command Center view reading real runtime state.
 4. Hardware gaps when the owner can: Pause hotkey, physical pad passthrough and live override, DS4 axes, one ENV-01 session through each output path.

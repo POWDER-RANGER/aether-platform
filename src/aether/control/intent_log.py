@@ -56,10 +56,11 @@ class IntentLog:
         """Thread-safe: the kill-switch hotkey thread writes here too."""
         with self._lock:
             record = {"n": self._count, "t_wall": self._wall(), "kind": kind, **fields}
-            record = json.loads(json.dumps(record, default=str))   # exactly what verify will see
+            record = json.loads(json.dumps(record, default=str))  # exactly what verify will see
             h = _digest(self._prev, record)
-            line = json.dumps({"prev": self._prev, "hash": h, "record": record},
-                              sort_keys=True, separators=(",", ":"), default=str)
+            line = json.dumps(
+                {"prev": self._prev, "hash": h, "record": record}, sort_keys=True, separators=(",", ":"), default=str
+            )
             self._fh.write(line + "\n")
             self._fh.flush()
             self._prev = h

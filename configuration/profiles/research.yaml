@@ -1,10 +1,10 @@
-# Development profile: for benchmarking and experiments in isolation only.
+# Research profile: for benchmarking and experiments in isolation only.
 # Use with offline games, the dryrun adapter, or recorded frames.
 # The Governor refuses this profile if online_mode is true.
 # Kill switch, neutral-on-halt, packet validation and focus checks stay on.
 
-name: development
-mode: development
+name: research
+mode: research
 
 governor:
   max_packets_per_sec: 240       # stress tests

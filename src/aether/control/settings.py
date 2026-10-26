@@ -1,5 +1,8 @@
 # Ported from POWDER-RANGER/powder-ranger-bot powder_ranger/config.py at ad15296 (M1; docs/architecture/LEGACY-REFERENCE.md).
-"""Configuration: config/default.yaml, overlaid by an optional player profile."""
+"""Control settings: default.yaml (shipped beside this module), overlaid by an optional profile.
+
+Modes (DECISIONS D-010): companion enforces COMPANION_BOUNDS (human-limit timing, focus required);
+research is for isolated experiments and refuses online_mode."""
 
 from __future__ import annotations
 
@@ -8,11 +11,10 @@ from pathlib import Path
 
 import yaml
 
-from .policy import GovernorConfig
 from .motor import MotorProfile
+from .policy import GovernorConfig
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CONFIG = ROOT / "config" / "default.yaml"
+DEFAULT_CONFIG = Path(__file__).with_name("default.yaml")
 
 
 @dataclass
@@ -26,12 +28,12 @@ class Settings:
     governor: GovernorConfig = field(default_factory=GovernorConfig)
     motor: MotorProfile = field(default_factory=MotorProfile)
     profile_name: str = "default"
-    mode: str = "deployment"          # deployment | development
+    mode: str = "companion"  # companion | research
 
 
-# Human-limit bounds every deployment session must satisfy. Development mode may
+# Human-limit bounds every companion session must satisfy. Research mode may
 # go outside them, but only in isolation (never with online_mode).
-DEPLOYMENT_BOUNDS = {
+COMPANION_BOUNDS = {
     "motor.reaction_min_ms": (">=", 100.0),
     "motor.max_presses_per_sec": ("<=", 12.0),
     "motor.button_min_hold_ms": (">=", 30.0),
@@ -45,20 +47,20 @@ DEPLOYMENT_BOUNDS = {
 def validate_settings(s: Settings, output: str | None = None) -> list[str]:
     """Problems that must block a session from starting. Empty list = OK."""
     problems: list[str] = []
-    if s.mode not in ("deployment", "development"):
+    if s.mode not in ("companion", "research"):
         return [f"unknown mode '{s.mode}'"]
     if s.governor.online_mode and "full_autopilot" not in s.governor.blocked_scopes_online:
         problems.append("online_mode requires full_autopilot in blocked_scopes_online")
-    if s.mode == "development":
+    if s.mode == "research":
         if s.governor.online_mode:
-            problems.append("development mode runs isolated only: online_mode must be false")
+            problems.append("research mode runs isolated only: online_mode must be false")
         return problems
-    for key, (op, bound) in DEPLOYMENT_BOUNDS.items():
+    for key, (op, bound) in COMPANION_BOUNDS.items():
         section, name = key.split(".")
         value = getattr(s.motor if section == "motor" else s.governor, name)
         ok = {">=": value >= bound, "<=": value <= bound, "==": value == bound}[op]
         if not ok:
-            problems.append(f"deployment bound: {key} = {value} (must be {op} {bound})")
+            problems.append(f"companion bound: {key} = {value} (must be {op} {bound})")
     return problems
 
 
@@ -70,10 +72,10 @@ def _merge(a: dict, b: dict) -> dict:
 
 
 def load_settings(config_path: str | Path | None = None, profile_path: str | Path | None = None) -> Settings:
-    raw = yaml.safe_load(Path(config_path or DEFAULT_CONFIG).read_text()) or {}
+    raw = yaml.safe_load(Path(config_path or DEFAULT_CONFIG).read_text(encoding="utf-8")) or {}
     profile_name = "default"
     if profile_path:
-        prof = yaml.safe_load(Path(profile_path).read_text()) or {}
+        prof = yaml.safe_load(Path(profile_path).read_text(encoding="utf-8")) or {}
         profile_name = prof.pop("name", Path(profile_path).stem)
         raw = _merge(raw, prof)
 
@@ -97,6 +99,6 @@ def load_settings(config_path: str | Path | None = None, profile_path: str | Pat
         governor=GovernorConfig(**gov_raw),
         motor=MotorProfile.from_dict(raw.get("motor")),
         profile_name=profile_name,
-        mode=raw.get("mode", "deployment"),
+        mode=raw.get("mode", "companion"),
     )
     return s

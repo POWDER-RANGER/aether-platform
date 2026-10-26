@@ -56,21 +56,34 @@ class DryRunAdapter(OutputAdapter):
 # ---------------------------------------------------------------------------
 
 _X360_BUTTONS = {
-    "SOUTH": "XUSB_GAMEPAD_A", "EAST": "XUSB_GAMEPAD_B",
-    "WEST": "XUSB_GAMEPAD_X", "NORTH": "XUSB_GAMEPAD_Y",
-    "LEFT_SHOULDER": "XUSB_GAMEPAD_LEFT_SHOULDER", "RIGHT_SHOULDER": "XUSB_GAMEPAD_RIGHT_SHOULDER",
-    "LEFT_THUMB": "XUSB_GAMEPAD_LEFT_THUMB", "RIGHT_THUMB": "XUSB_GAMEPAD_RIGHT_THUMB",
-    "DPAD_UP": "XUSB_GAMEPAD_DPAD_UP", "DPAD_DOWN": "XUSB_GAMEPAD_DPAD_DOWN",
-    "DPAD_LEFT": "XUSB_GAMEPAD_DPAD_LEFT", "DPAD_RIGHT": "XUSB_GAMEPAD_DPAD_RIGHT",
-    "START": "XUSB_GAMEPAD_START", "BACK": "XUSB_GAMEPAD_BACK", "GUIDE": "XUSB_GAMEPAD_GUIDE",
+    "SOUTH": "XUSB_GAMEPAD_A",
+    "EAST": "XUSB_GAMEPAD_B",
+    "WEST": "XUSB_GAMEPAD_X",
+    "NORTH": "XUSB_GAMEPAD_Y",
+    "LEFT_SHOULDER": "XUSB_GAMEPAD_LEFT_SHOULDER",
+    "RIGHT_SHOULDER": "XUSB_GAMEPAD_RIGHT_SHOULDER",
+    "LEFT_THUMB": "XUSB_GAMEPAD_LEFT_THUMB",
+    "RIGHT_THUMB": "XUSB_GAMEPAD_RIGHT_THUMB",
+    "DPAD_UP": "XUSB_GAMEPAD_DPAD_UP",
+    "DPAD_DOWN": "XUSB_GAMEPAD_DPAD_DOWN",
+    "DPAD_LEFT": "XUSB_GAMEPAD_DPAD_LEFT",
+    "DPAD_RIGHT": "XUSB_GAMEPAD_DPAD_RIGHT",
+    "START": "XUSB_GAMEPAD_START",
+    "BACK": "XUSB_GAMEPAD_BACK",
+    "GUIDE": "XUSB_GAMEPAD_GUIDE",
 }
 
 _DS4_BUTTONS = {
-    "SOUTH": "DS4_BUTTON_CROSS", "EAST": "DS4_BUTTON_CIRCLE",
-    "WEST": "DS4_BUTTON_SQUARE", "NORTH": "DS4_BUTTON_TRIANGLE",
-    "LEFT_SHOULDER": "DS4_BUTTON_SHOULDER_LEFT", "RIGHT_SHOULDER": "DS4_BUTTON_SHOULDER_RIGHT",
-    "LEFT_THUMB": "DS4_BUTTON_THUMB_LEFT", "RIGHT_THUMB": "DS4_BUTTON_THUMB_RIGHT",
-    "START": "DS4_BUTTON_OPTIONS", "BACK": "DS4_BUTTON_SHARE",
+    "SOUTH": "DS4_BUTTON_CROSS",
+    "EAST": "DS4_BUTTON_CIRCLE",
+    "WEST": "DS4_BUTTON_SQUARE",
+    "NORTH": "DS4_BUTTON_TRIANGLE",
+    "LEFT_SHOULDER": "DS4_BUTTON_SHOULDER_LEFT",
+    "RIGHT_SHOULDER": "DS4_BUTTON_SHOULDER_RIGHT",
+    "LEFT_THUMB": "DS4_BUTTON_THUMB_LEFT",
+    "RIGHT_THUMB": "DS4_BUTTON_THUMB_RIGHT",
+    "START": "DS4_BUTTON_OPTIONS",
+    "BACK": "DS4_BUTTON_SHARE",
 }
 
 # (up, down, left, right) -> DS4_DPAD_DIRECTIONS member
@@ -90,7 +103,7 @@ _DS4_DPAD = {
 def ds4_dpad_key(buttons: frozenset[str]) -> tuple[bool, bool, bool, bool]:
     up, down = "DPAD_UP" in buttons, "DPAD_DOWN" in buttons
     left, right = "DPAD_LEFT" in buttons, "DPAD_RIGHT" in buttons
-    if up and down:          # impossible on a real pad: cancel out
+    if up and down:  # impossible on a real pad: cancel out
         up = down = False
     if left and right:
         left = right = False
@@ -107,6 +120,7 @@ class VGamepadAdapter(OutputAdapter):
 
     def __init__(self, kind: str = "x360", invert_y: bool = False):
         import vgamepad as vg  # Windows + ViGEmBus required
+
         self.vg = vg
         self.kind = kind
         self.invert_y = invert_y

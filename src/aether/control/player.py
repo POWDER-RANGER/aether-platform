@@ -26,8 +26,8 @@ import time
 from collections.abc import Callable
 from typing import Protocol
 
-from .intent import GamepadFrame
 from .filters import OneEuroFilter
+from .intent import GamepadFrame
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -39,9 +39,15 @@ class InputSource(Protocol):
 
 
 def is_neutral(f: GamepadFrame, stick_eps: float = 0.0, trig_eps: float = 0.0) -> bool:
-    return (not f.buttons and abs(f.lx) <= stick_eps and abs(f.ly) <= stick_eps
-            and abs(f.rx) <= stick_eps and abs(f.ry) <= stick_eps
-            and f.lt <= trig_eps and f.rt <= trig_eps)
+    return (
+        not f.buttons
+        and abs(f.lx) <= stick_eps
+        and abs(f.ly) <= stick_eps
+        and abs(f.rx) <= stick_eps
+        and abs(f.ry) <= stick_eps
+        and f.lt <= trig_eps
+        and f.rt <= trig_eps
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -49,19 +55,35 @@ def is_neutral(f: GamepadFrame, stick_eps: float = 0.0, trig_eps: float = 0.0) -
 # ---------------------------------------------------------------------------
 
 XINPUT_BUTTONS = {
-    0x0001: "DPAD_UP", 0x0002: "DPAD_DOWN", 0x0004: "DPAD_LEFT", 0x0008: "DPAD_RIGHT",
-    0x0010: "START", 0x0020: "BACK", 0x0040: "LEFT_THUMB", 0x0080: "RIGHT_THUMB",
-    0x0100: "LEFT_SHOULDER", 0x0200: "RIGHT_SHOULDER",
-    0x1000: "SOUTH", 0x2000: "EAST", 0x4000: "WEST", 0x8000: "NORTH",
+    0x0001: "DPAD_UP",
+    0x0002: "DPAD_DOWN",
+    0x0004: "DPAD_LEFT",
+    0x0008: "DPAD_RIGHT",
+    0x0010: "START",
+    0x0020: "BACK",
+    0x0040: "LEFT_THUMB",
+    0x0080: "RIGHT_THUMB",
+    0x0100: "LEFT_SHOULDER",
+    0x0200: "RIGHT_SHOULDER",
+    0x1000: "SOUTH",
+    0x2000: "EAST",
+    0x4000: "WEST",
+    0x8000: "NORTH",
 }
-LEFT_DEADZONE, RIGHT_DEADZONE, TRIGGER_THRESHOLD = 7849, 8689, 30   # Microsoft's XInput defaults
+LEFT_DEADZONE, RIGHT_DEADZONE, TRIGGER_THRESHOLD = 7849, 8689, 30  # Microsoft's XInput defaults
 
 
 class _XState(ctypes.Structure):
-    _fields_ = [("packet", ctypes.c_uint), ("buttons", ctypes.c_ushort),
-                ("lt", ctypes.c_ubyte), ("rt", ctypes.c_ubyte),
-                ("lx", ctypes.c_short), ("ly", ctypes.c_short),
-                ("rx", ctypes.c_short), ("ry", ctypes.c_short)]
+    _fields_ = [
+        ("packet", ctypes.c_uint),
+        ("buttons", ctypes.c_ushort),
+        ("lt", ctypes.c_ubyte),
+        ("rt", ctypes.c_ubyte),
+        ("lx", ctypes.c_short),
+        ("ly", ctypes.c_short),
+        ("rx", ctypes.c_short),
+        ("ry", ctypes.c_short),
+    ]
 
 
 def _stick(x: int, y: int, dz: int) -> tuple[float, float]:
@@ -116,7 +138,8 @@ def pick_player_slot(occupied_before_virtual_pad: list[int]) -> int:
     if len(occupied_before_virtual_pad) != 1:
         raise RuntimeError(
             f"expected exactly one physical controller before start, found {len(occupied_before_virtual_pad)}"
-            " (slots: %s). Connect one pad, or pass --player-slot explicitly." % occupied_before_virtual_pad)
+            " (slots: %s). Connect one pad, or pass --player-slot explicitly." % occupied_before_virtual_pad
+        )
     return occupied_before_virtual_pad[0]
 
 
@@ -128,8 +151,16 @@ def pick_player_slot(occupied_before_virtual_pad: list[int]) -> int:
 VK_NAMES = {
     **{chr(c): c for c in range(ord("A"), ord("Z") + 1)},
     **{str(d): 0x30 + d for d in range(10)},
-    "SPACE": 0x20, "ENTER": 0x0D, "TAB": 0x09, "SHIFT": 0x10, "CTRL": 0x11, "ALT": 0x12,
-    "LEFT": 0x25, "UP": 0x26, "RIGHT": 0x27, "DOWN": 0x28,
+    "SPACE": 0x20,
+    "ENTER": 0x0D,
+    "TAB": 0x09,
+    "SHIFT": 0x10,
+    "CTRL": 0x11,
+    "ALT": 0x12,
+    "LEFT": 0x25,
+    "UP": 0x26,
+    "RIGHT": 0x27,
+    "DOWN": 0x28,
     **{f"F{n}": 0x6F + n for n in range(1, 13)},
     **{f"NUM{d}": 0x60 + d for d in range(10)},
 }
@@ -143,6 +174,7 @@ class KeyboardSource:
 
     def __init__(self, mapping: dict[str, str], key_state: Callable[[int], bool] | None = None):
         from .intent import BUTTONS
+
         self.name = "keyboard"
         self.map: list[tuple[int, str]] = []
         for key, target in mapping.items():
@@ -185,10 +217,17 @@ class FakeSource:
 
 # ---------------------------------------------------------------------------
 
+
 class PlayerInputLoop:
-    def __init__(self, source: InputSource, send: Callable[..., None],
-                 presence: Callable[[str], None] | None = None, steady: bool = False,
-                 presence_every_s: float = 2.0, clock: Callable[[], float] = time.monotonic):
+    def __init__(
+        self,
+        source: InputSource,
+        send: Callable[..., None],
+        presence: Callable[[str], None] | None = None,
+        steady: bool = False,
+        presence_every_s: float = 2.0,
+        clock: Callable[[], float] = time.monotonic,
+    ):
         self.source = source
         self.send = send
         self.presence = presence
@@ -197,8 +236,9 @@ class PlayerInputLoop:
         self._last_presence = -1e9
         self._was_active = False
         self.lost = False
-        self._filters = ({a: OneEuroFilter(min_cutoff_hz=1.0, beta=0.05) for a in ("lx", "ly", "rx", "ry")}
-                         if steady else None)
+        self._filters = (
+            {a: OneEuroFilter(min_cutoff_hz=1.0, beta=0.05) for a in ("lx", "ly", "rx", "ry")} if steady else None
+        )
 
     def _smooth(self, f: GamepadFrame, t: float) -> GamepadFrame:
         if self._filters is None:
@@ -210,10 +250,10 @@ class PlayerInputLoop:
         """One step. Returns the frame sent, or None if nothing was sent."""
         t = self.clock()
         raw = self.source.read()
-        if raw is None:                      # device unplugged
+        if raw is None:  # device unplugged
             if not self.lost:
                 self.lost = True
-                if self._was_active:         # release whatever the player was holding
+                if self._was_active:  # release whatever the player was holding
                     self._was_active = False
                     self.send(GamepadFrame())
                     return GamepadFrame()
@@ -233,7 +273,7 @@ class PlayerInputLoop:
             else:
                 self.send(f)
             return f
-        if self._was_active:                 # just let go: one neutral, then quiet
+        if self._was_active:  # just let go: one neutral, then quiet
             self._was_active = False
             self.send(GamepadFrame())
             return GamepadFrame()

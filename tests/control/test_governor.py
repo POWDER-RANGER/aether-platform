@@ -2,20 +2,23 @@
 import json
 import threading
 import time
+from pathlib import Path
 
 import numpy as np
 from conftest import FakeClock
 
-from aether.control.settings import ROOT, load_settings, validate_settings
+from aether.control.adapters import DryRunAdapter
 from aether.control.client import GovernorClient
 from aether.control.governor import Governor
+from aether.control.intent import Delegation, GamepadFrame, IntentPacket, Source, sign_message
 from aether.control.intent_log import IntentLog, verify_log, verify_seal
+from aether.control.motor import MotorModel, MotorProfile
 from aether.control.policy import GovernorConfig
 from aether.control.safety import KillSwitch
-from aether.control.intent import Delegation, GamepadFrame, IntentPacket, Source, sign_message
-from aether.control.motor import MotorModel, MotorProfile
-from aether.control.adapters import DryRunAdapter
+from aether.control.settings import load_settings, validate_settings
 from prrex.backends import nitrogen
+
+REPO = Path(__file__).resolve().parents[2]
 
 KEY = b"s" * 32
 FAST = MotorProfile(reaction_min_ms=0, reaction_max_ms=1, tremor_amp=0, drift_sigma=0)
@@ -24,15 +27,28 @@ FAST = MotorProfile(reaction_min_ms=0, reaction_max_ms=1, tremor_amp=0, drift_si
 def make_gov(tmp_path, clock, focused=True, **cfg):
     adapter = DryRunAdapter()
     kill = KillSwitch(tmp_path / "STOP")
-    gov = Governor(GovernorConfig(**cfg), MotorModel(FAST, seed=1), adapter,
-                   IntentLog(tmp_path / "s.jsonl"), kill, lambda: focused, clock=clock, seal_key=KEY)
+    gov = Governor(
+        GovernorConfig(**cfg),
+        MotorModel(FAST, seed=1),
+        adapter,
+        IntentLog(tmp_path / "s.jsonl"),
+        kill,
+        lambda: focused,
+        clock=clock,
+        seal_key=KEY,
+    )
     return gov, adapter, kill
 
 
 def intent(seq, clock, source=Source.REFLEX, deleg="d1", frame=None):
-    return IntentPacket(seq=seq, source=source, created_at=clock(), ttl_ms=250,
-                        frames=(frame or GamepadFrame(lx=1.0, buttons=frozenset({"SOUTH"})),),
-                        delegation_id=deleg).to_dict()
+    return IntentPacket(
+        seq=seq,
+        source=source,
+        created_at=clock(),
+        ttl_ms=250,
+        frames=(frame or GamepadFrame(lx=1.0, buttons=frozenset({"SOUTH"})),),
+        delegation_id=deleg,
+    ).to_dict()
 
 
 def grant(gov, clock, scope="full_autopilot"):
@@ -70,8 +86,8 @@ def test_kill_switch_releases_held_controls_immediately(tmp_path):
     grant(gov, c)
     gov.handle("intent", intent(1, c))
     assert "SOUTH" in ticks(gov, c, 20)[-1].buttons
-    kill.trip("test")                                   # e.g. from the hotkey thread
-    assert adapter.frames[-1] == GamepadFrame()          # neutral written before anything else
+    kill.trip("test")  # e.g. from the hotkey thread
+    assert adapter.frames[-1] == GamepadFrame()  # neutral written before anything else
     gov.handle("intent", intent(2, c))
     assert all(f == GamepadFrame() for f in ticks(gov, c, 20))
 
@@ -86,7 +102,7 @@ def test_stop_file_trips_and_resume_needs_new_grant(tmp_path):
     (tmp_path / "STOP").unlink()
     gov.handle("resume", {})
     gov.handle("intent", intent(2, c))
-    assert all(f == GamepadFrame() for f in ticks(gov, c, 20))   # delegation was revoked by the trip
+    assert all(f == GamepadFrame() for f in ticks(gov, c, 20))  # delegation was revoked by the trip
     grant(gov, c)
     gov.handle("intent", intent(3, c))
     assert ticks(gov, c, 30)[-1].lx > 0.9
@@ -98,7 +114,7 @@ def test_watchdog_eases_to_neutral_when_policy_stalls(tmp_path):
     grant(gov, c)
     gov.handle("intent", intent(1, c))
     ticks(gov, c, 30)
-    last = ticks(gov, c, 200)[-1]                       # 1.7 s with no new intent
+    last = ticks(gov, c, 200)[-1]  # 1.7 s with no new intent
     assert abs(last.lx) < 0.01 and not last.buttons
 
 
@@ -154,18 +170,19 @@ def test_every_allowed_output_is_attributed_in_the_log(tmp_path):
 
 
 # --------------------------------------------------------------------------
-# configuration: development vs deployment
+# configuration: research vs companion
 # --------------------------------------------------------------------------
+
 
 def test_default_settings_are_valid_deployment():
     s = load_settings()
-    assert s.mode == "deployment" and validate_settings(s) == []
+    assert s.mode == "companion" and validate_settings(s) == []
 
 
 def test_development_profile_is_valid_but_refused_online(tmp_path):
-    dev = ROOT / "config" / "profiles" / "development.yaml"
+    dev = REPO / "configuration" / "profiles" / "research.yaml"
     s = load_settings(profile_path=dev)
-    assert s.mode == "development" and validate_settings(s) == []
+    assert s.mode == "research" and validate_settings(s) == []
     s.governor.online_mode = True
     assert any("isolated" in p for p in validate_settings(s))
 
@@ -173,7 +190,7 @@ def test_development_profile_is_valid_but_refused_online(tmp_path):
 def test_dev_settings_cannot_leak_into_deployment(tmp_path):
     prof = tmp_path / "sneaky.yaml"
     prof.write_text("motor:\n  humanize: false\n  max_presses_per_sec: 40\n")
-    s = load_settings(profile_path=prof)              # mode stays deployment
+    s = load_settings(profile_path=prof)  # mode stays companion
     problems = validate_settings(s)
     assert any("humanize" in p for p in problems) and any("max_presses_per_sec" in p for p in problems)
 
@@ -182,16 +199,18 @@ def test_dev_settings_cannot_leak_into_deployment(tmp_path):
 # headless pipeline: fake NitroGen + fake capture -> real ZMQ -> Governor
 # --------------------------------------------------------------------------
 
+
 def test_prediction_conversion():
     tokens = nitrogen.NITROGEN_TOKENS
     b = np.zeros((2, len(tokens)))
     b[0, tokens.index("SOUTH")] = 0.9
     b[0, tokens.index("START")] = 0.9
-    b[0, tokens.index("RIGHT_UP")] = 0.9                # ignored token
+    b[0, tokens.index("RIGHT_UP")] = 0.9  # ignored token
     b[1, tokens.index("LEFT_TRIGGER")] = 0.7
-    frames = nitrogen.prediction_to_frames({"j_left": [[0.5, 0.25], [0, -1]],
-                                            "j_right": [[0, 0], [0, 0]], "buttons": b})
-    assert frames[0].lx == 0.5 and frames[0].ly == -0.25          # NitroGen +y down -> +y up
+    frames = nitrogen.prediction_to_frames(
+        {"j_left": [[0.5, 0.25], [0, -1]], "j_right": [[0, 0], [0, 0]], "buttons": b}
+    )
+    assert frames[0].lx == 0.5 and frames[0].ly == -0.25  # NitroGen +y down -> +y up
     assert frames[0].buttons == frozenset({"SOUTH", "START"})
     assert frames[1].ly == 1.0 and abs(frames[1].lt - 0.7) < 1e-9 and not frames[1].buttons
 
@@ -200,15 +219,26 @@ def test_headless_pipeline_end_to_end(tmp_path):
     endpoint = "tcp://127.0.0.1:5591"
     adapter = DryRunAdapter()
     kill = KillSwitch()
-    gov = Governor(GovernorConfig(), MotorModel(FAST, seed=1), adapter,
-                   IntentLog(tmp_path / "s.jsonl"), kill, lambda: True, seal_key=KEY)
+    gov = Governor(
+        GovernorConfig(),
+        MotorModel(FAST, seed=1),
+        adapter,
+        IntentLog(tmp_path / "s.jsonl"),
+        kill,
+        lambda: True,
+        seal_key=KEY,
+    )
     t = threading.Thread(target=gov.serve, args=(endpoint, KEY), kwargs={"tick_hz": 240}, daemon=True)
     t.start()
     time.sleep(0.2)
 
     class FakeServer:
-        def reset(self): pass
-        def info(self): return {"action_downsample_ratio": 1, "ckpt_path": "fake.pt"}
+        def reset(self):
+            pass
+
+        def info(self):
+            return {"action_downsample_ratio": 1, "ckpt_path": "fake.pt"}
+
         def predict(self, img):
             assert img.size == (256, 256)
             b = np.zeros((4, len(nitrogen.NITROGEN_TOKENS)))
@@ -216,15 +246,25 @@ def test_headless_pipeline_end_to_end(tmp_path):
             return {"j_left": [[0.8, 0.0]] * 4, "j_right": [[0, 0]] * 4, "buttons": b}
 
     class FakeCapture:
-        def grab(self): return np.full((480, 640, 3), 128, dtype=np.uint8)
-        def close(self): pass
+        def grab(self):
+            return np.full((480, 640, 3), 128, dtype=np.uint8)
+
+        def close(self):
+            pass
 
     control = GovernorClient(endpoint, KEY, Source.SYSTEM)
     control.grant(Delegation(id="d1", scope="full_autopilot", granted_at=time.monotonic()))
     time.sleep(0.1)
     reflex = GovernorClient(endpoint, KEY, Source.REFLEX)
-    sent = nitrogen.run(reflex, "fake.exe", "d1", max_steps=5, capture=FakeCapture(), server=FakeServer(),
-                        metrics_path=tmp_path / "m.csv")
+    sent = nitrogen.run(
+        reflex,
+        "fake.exe",
+        "d1",
+        max_steps=5,
+        capture=FakeCapture(),
+        server=FakeServer(),
+        metrics_path=tmp_path / "m.csv",
+    )
     time.sleep(0.6)
     assert sent == 5
     assert any(f.lx > 0.5 and "SOUTH" in f.buttons for f in adapter.frames)
@@ -249,12 +289,18 @@ def test_watchdog_does_not_cut_a_long_chunk_short(tmp_path):
     gov, adapter, _ = make_gov(tmp_path, c, watchdog_ms=500)
     grant(gov, c)
     frames = [GamepadFrame(lx=0.2 * (i % 5)).to_dict() for i in range(16)]
-    pkt = IntentPacket(seq=1, source=Source.REFLEX, created_at=c(), ttl_ms=250,
-                       frames=tuple(GamepadFrame.from_dict(f) for f in frames), frame_dt_ms=66.7,
-                       delegation_id="d1").to_dict()
+    pkt = IntentPacket(
+        seq=1,
+        source=Source.REFLEX,
+        created_at=c(),
+        ttl_ms=250,
+        frames=tuple(GamepadFrame.from_dict(f) for f in frames),
+        frame_dt_ms=66.7,
+        delegation_id="d1",
+    ).to_dict()
     gov.handle("intent", pkt)
-    out = ticks(gov, c, int(1.0 * 120))               # 1.0 s: chunk is 15 x 66.7 ms = 1.0 s long
+    out = ticks(gov, c, int(1.0 * 120))  # 1.0 s: chunk is 15 x 66.7 ms = 1.0 s long
     assert not gov._watchdog_neutral
-    assert max(f.lx for f in out[-30:]) > 0.5          # still playing near the end
-    ticks(gov, c, int(0.7 * 120))                      # then the watchdog may act
+    assert max(f.lx for f in out[-30:]) > 0.5  # still playing near the end
+    ticks(gov, c, int(0.7 * 120))  # then the watchdog may act
     assert gov._watchdog_neutral

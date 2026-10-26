@@ -24,7 +24,7 @@ def make_dpi_aware() -> None:
     if _DPI_SET or not IS_WINDOWS:
         return
     try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)      # per-monitor aware
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # per-monitor aware
     except Exception:
         try:
             ctypes.windll.user32.SetProcessDPIAware()
@@ -43,8 +43,7 @@ def find_window_rect(process_name: str) -> tuple[int, int, int, int]:
 
     import psutil
 
-    pids = {p.pid for p in psutil.process_iter(["name"])
-            if (p.info.get("name") or "").lower() == process_name.lower()}
+    pids = {p.pid for p in psutil.process_iter(["name"]) if (p.info.get("name") or "").lower() == process_name.lower()}
     if not pids:
         raise RuntimeError(f"process not running: {process_name}")
 
@@ -79,6 +78,7 @@ class WindowCapture:
 
     def __init__(self, process_name: str, target_fps: int = 30):
         import dxcam
+
         self.process_name = process_name
         self.region = find_window_rect(process_name)
         self.camera = dxcam.create(output_color="RGB")

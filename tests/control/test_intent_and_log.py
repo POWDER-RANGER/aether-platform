@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from aether.control.intent_log import IntentLog, verify_log, verify_seal
 from aether.control.intent import BadSignature, GamepadFrame, IntentPacket, Source, sign_message, verify_message
+from aether.control.intent_log import IntentLog, verify_log, verify_seal
 
 KEY = b"k" * 32
 
@@ -17,8 +17,14 @@ def test_frame_clamps_and_rejects_unknown_buttons():
 
 
 def test_packet_roundtrip():
-    p = IntentPacket(seq=1, source=Source.REFLEX, created_at=5.0, ttl_ms=100,
-                     frames=(GamepadFrame(lx=0.5, buttons=frozenset({"SOUTH"})),), delegation_id="d")
+    p = IntentPacket(
+        seq=1,
+        source=Source.REFLEX,
+        created_at=5.0,
+        ttl_ms=100,
+        frames=(GamepadFrame(lx=0.5, buttons=frozenset({"SOUTH"})),),
+        delegation_id="d",
+    )
     assert IntentPacket.from_dict(json.loads(json.dumps(p.to_dict()))) == p
 
 
@@ -73,7 +79,7 @@ def test_truncation_passes_chain_but_fails_seal(tmp_path):
     _write_log(p)
     lines = p.read_text().splitlines()
     p.write_text("\n".join(lines[:3]) + "\n")
-    assert verify_log(p)[0]                      # the chain alone cannot see truncation
+    assert verify_log(p)[0]  # the chain alone cannot see truncation
     ok, problem = verify_seal(p, KEY)
     assert not ok and "truncated" in problem
 

@@ -66,8 +66,13 @@ class KillSwitch:
         if self.stop_file is not None and self.stop_file.exists():
             self.trip(f"stop file present: {self.stop_file}")
 
-    def start_hotkeys(self, kill_vk: int = VK_PAUSE, kill_mods: int = 0,
-                      resume_vk: int = VK_R, resume_mods: int = MOD_CONTROL | MOD_ALT) -> bool:
+    def start_hotkeys(
+        self,
+        kill_vk: int = VK_PAUSE,
+        kill_mods: int = 0,
+        resume_vk: int = VK_R,
+        resume_mods: int = MOD_CONTROL | MOD_ALT,
+    ) -> bool:
         """Register global hotkeys on a dedicated thread. Returns False when
         unavailable (non-Windows, or the key is already taken)."""
         if not IS_WINDOWS:
@@ -92,6 +97,7 @@ class KillSwitch:
                         self.request_resume()
 
         import ctypes.wintypes  # noqa: F401  (Windows only)
+
         threading.Thread(target=run, name="killswitch-hotkeys", daemon=True).start()
         ready.wait(2.0)
         return ok["value"]
@@ -111,6 +117,7 @@ class FocusChecker:
             return self.assume
         try:
             import psutil
+
             user32 = ctypes.windll.user32
             hwnd = user32.GetForegroundWindow()
             pid = ctypes.c_ulong()

@@ -1,13 +1,20 @@
 # Ported from POWDER-RANGER/powder-ranger-bot tests/test_policy.py at ad15296 (M1; docs/architecture/LEGACY-REFERENCE.md).
-from aether.control.policy import GovernorConfig, GovernorPolicy
 from aether.control.intent import Delegation, GamepadFrame, IntentPacket, Source
+from aether.control.policy import GovernorConfig, GovernorPolicy
 
 NOW = 1000.0
 
 
 def pkt(seq, source=Source.REFLEX, created=NOW, ttl=250, conf=1.0, deleg="d1", frames=None):
-    return IntentPacket(seq=seq, source=source, created_at=created, ttl_ms=ttl,
-                        frames=frames or (GamepadFrame(lx=0.5),), confidence=conf, delegation_id=deleg)
+    return IntentPacket(
+        seq=seq,
+        source=source,
+        created_at=created,
+        ttl_ms=ttl,
+        frames=frames or (GamepadFrame(lx=0.5),),
+        confidence=conf,
+        delegation_id=deleg,
+    )
 
 
 def policy(**kw):
@@ -92,7 +99,7 @@ def test_confidence_floor():
 
 
 def test_rate_limit():
-    p = policy(max_packets_per_sec=4)        # burst of 1
+    p = policy(max_packets_per_sec=4)  # burst of 1
     assert p.evaluate(pkt(1), NOW, True).allow
     assert not p.evaluate(pkt(2), NOW + 0.01, True).allow
     assert p.evaluate(pkt(3, created=NOW + 0.3), NOW + 0.3, True).allow

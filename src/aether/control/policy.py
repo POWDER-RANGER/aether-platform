@@ -25,23 +25,23 @@ from .intent import MENU_BUTTONS, Delegation, IntentPacket, Source
 @dataclass
 class GovernorConfig:
     confidence_floor: float = 0.0
-    max_packets_per_sec: float = 30.0          # per non-player source
-    player_override_hold_ms: int = 1500        # companion yields this long after any player input
-    online_mode: bool = False                  # True = online / competitive game
-    presence_timeout_s: float = 20.0           # online: player must have shown presence this recently
-    allow_menu_buttons: bool = False           # START/BACK/GUIDE from the companion
+    max_packets_per_sec: float = 30.0  # per non-player source
+    player_override_hold_ms: int = 1500  # companion yields this long after any player input
+    online_mode: bool = False  # True = online / competitive game
+    presence_timeout_s: float = 20.0  # online: player must have shown presence this recently
+    allow_menu_buttons: bool = False  # START/BACK/GUIDE from the companion
     blocked_scopes_online: tuple[str, ...] = ("full_autopilot",)
     require_focus: bool = True
-    watchdog_ms: int = 500                     # no allowed packet this long -> neutral output
-    allowed_scopes: tuple[str, ...] | None = None   # the game pack's scopes; None = no pack limit
-    claim_ttl_ms: int = 250                    # a partial player claim lasts this long without refresh
+    watchdog_ms: int = 500  # no allowed packet this long -> neutral output
+    allowed_scopes: tuple[str, ...] | None = None  # the game pack's scopes; None = no pack limit
+    claim_ttl_ms: int = 250  # a partial player claim lasts this long without refresh
 
 
 @dataclass
 class Decision:
     allow: bool
     reasons: list[str] = field(default_factory=list)
-    packet: IntentPacket | None = None         # possibly modified (e.g. menu buttons stripped)
+    packet: IntentPacket | None = None  # possibly modified (e.g. menu buttons stripped)
 
 
 class _TokenBucket:
@@ -111,14 +111,16 @@ class GovernorPolicy:
 
         if p.source is Source.PLAYER:
             self.last_presence = now
-            if p.claims:                       # shared control: player owns some controls only
+            if p.claims:  # shared control: player owns some controls only
                 return Decision(True, [f"player input (claims {','.join(p.claims)})"], p)
-            self.last_player_input = now       # full takeover: companion yields everything
+            self.last_player_input = now  # full takeover: companion yields everything
             return Decision(True, ["player input"], p)
 
         # ---- everything below is companion output ----
-        if (self.last_player_input is not None
-                and (now - self.last_player_input) * 1000.0 < self.cfg.player_override_hold_ms):
+        if (
+            self.last_player_input is not None
+            and (now - self.last_player_input) * 1000.0 < self.cfg.player_override_hold_ms
+        ):
             return Decision(False, ["player override active"])
 
         d = self.delegations.get(p.delegation_id or "")
@@ -140,7 +142,8 @@ class GovernorPolicy:
             return Decision(False, [f"confidence {p.confidence:.2f} < floor {self.cfg.confidence_floor:.2f}"])
 
         bucket = self._buckets.setdefault(
-            p.source, _TokenBucket(self.cfg.max_packets_per_sec, max(1.0, self.cfg.max_packets_per_sec / 4)))
+            p.source, _TokenBucket(self.cfg.max_packets_per_sec, max(1.0, self.cfg.max_packets_per_sec / 4))
+        )
         if not bucket.take(now):
             return Decision(False, ["rate limit"])
 
@@ -148,9 +151,16 @@ class GovernorPolicy:
         out = p
         if not self.cfg.allow_menu_buttons and any(f.buttons & MENU_BUTTONS for f in p.frames):
             out = IntentPacket(
-                seq=p.seq, source=p.source, created_at=p.created_at, ttl_ms=p.ttl_ms,
+                seq=p.seq,
+                source=p.source,
+                created_at=p.created_at,
+                ttl_ms=p.ttl_ms,
                 frames=tuple(f.without(MENU_BUTTONS) for f in p.frames),
-                frame_dt_ms=p.frame_dt_ms, confidence=p.confidence,
-                delegation_id=p.delegation_id, player_intent_ref=p.player_intent_ref, note=p.note)
+                frame_dt_ms=p.frame_dt_ms,
+                confidence=p.confidence,
+                delegation_id=p.delegation_id,
+                player_intent_ref=p.player_intent_ref,
+                note=p.note,
+            )
             reasons.append("menu buttons stripped")
         return Decision(True, reasons, out)

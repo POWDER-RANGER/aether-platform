@@ -1,7 +1,7 @@
-# Æther (PR-REX) - default settings. A player profile (config/profiles/*.yaml)
+# Æther control - default settings. A profile (configuration/profiles/*.yaml)
 # overrides any of these.
 
-mode: deployment             # deployment | development (see config/profiles/development.yaml)
+mode: companion             # companion | research (see configuration/profiles/research.yaml)
 endpoint: tcp://127.0.0.1:5577   # Governor channel; localhost only
 tick_hz: 120                     # controller update rate
 log_dir: logs

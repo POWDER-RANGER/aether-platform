@@ -18,25 +18,35 @@ from enum import Enum
 
 # Unified button names. These follow NitroGen's naming so policy output maps 1:1.
 BUTTONS: tuple[str, ...] = (
-    "SOUTH", "EAST", "WEST", "NORTH",
-    "LEFT_SHOULDER", "RIGHT_SHOULDER",
-    "LEFT_THUMB", "RIGHT_THUMB",
-    "DPAD_UP", "DPAD_DOWN", "DPAD_LEFT", "DPAD_RIGHT",
-    "START", "BACK", "GUIDE",
+    "SOUTH",
+    "EAST",
+    "WEST",
+    "NORTH",
+    "LEFT_SHOULDER",
+    "RIGHT_SHOULDER",
+    "LEFT_THUMB",
+    "RIGHT_THUMB",
+    "DPAD_UP",
+    "DPAD_DOWN",
+    "DPAD_LEFT",
+    "DPAD_RIGHT",
+    "START",
+    "BACK",
+    "GUIDE",
 )
 MENU_BUTTONS: frozenset[str] = frozenset({"START", "BACK", "GUIDE"})
 # Controls a partial player packet can claim (shared control). No claims = the whole pad.
-MAX_FRAMES = 256                    # one packet is a short chunk, not a recording
+MAX_FRAMES = 256  # one packet is a short chunk, not a recording
 CLAIMABLE: tuple[str, ...] = ("lx", "ly", "rx", "ry", "lt", "rt", "buttons")
 
 
 class Source(str, Enum):
     """Who produced a packet. PLAYER always outranks everything else."""
 
-    PLAYER = "player"          # the human in the loop (any input adapter)
-    REFLEX = "reflex"          # fast policy, e.g. NitroGen
-    PLANNER = "planner"        # strategic layers
-    SYSTEM = "system"          # launcher / test scripts acting for the player
+    PLAYER = "player"  # the human in the loop (any input adapter)
+    REFLEX = "reflex"  # fast policy, e.g. NitroGen
+    PLANNER = "planner"  # strategic layers
+    SYSTEM = "system"  # launcher / test scripts acting for the player
 
 
 def _clamp(v: float, lo: float, hi: float) -> float:
@@ -73,8 +83,7 @@ class GamepadFrame:
         return GamepadFrame()
 
     def without(self, buttons: Iterable[str]) -> GamepadFrame:
-        return GamepadFrame(self.lx, self.ly, self.rx, self.ry, self.lt, self.rt,
-                            self.buttons - frozenset(buttons))
+        return GamepadFrame(self.lx, self.ly, self.rx, self.ry, self.lt, self.rt, self.buttons - frozenset(buttons))
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -86,9 +95,12 @@ class GamepadFrame:
         if not isinstance(d, dict):
             raise ValueError("frame must be an object")
         return GamepadFrame(
-            lx=d.get("lx", 0.0), ly=d.get("ly", 0.0),
-            rx=d.get("rx", 0.0), ry=d.get("ry", 0.0),
-            lt=d.get("lt", 0.0), rt=d.get("rt", 0.0),
+            lx=d.get("lx", 0.0),
+            ly=d.get("ly", 0.0),
+            rx=d.get("rx", 0.0),
+            ry=d.get("ry", 0.0),
+            lt=d.get("lt", 0.0),
+            rt=d.get("rt", 0.0),
             buttons=frozenset(d.get("buttons", ())),
         )
 
@@ -111,7 +123,7 @@ class IntentPacket:
 
     seq: int
     source: Source
-    created_at: float                 # sender's clock, seconds (time.monotonic on the same machine)
+    created_at: float  # sender's clock, seconds (time.monotonic on the same machine)
     ttl_ms: int
     frames: tuple[GamepadFrame, ...]
     frame_dt_ms: float = 1000.0 / 60.0
@@ -119,8 +131,8 @@ class IntentPacket:
     delegation_id: str | None = None
     player_intent_ref: str | None = None
     note: str = ""
-    producer: str = ""                # one id per sending process; replay checks are per producer
-    claims: tuple[str, ...] = ()      # player only: controls this packet owns; () = the whole pad
+    producer: str = ""  # one id per sending process; replay checks are per producer
+    claims: tuple[str, ...] = ()  # player only: controls this packet owns; () = the whole pad
 
     def __post_init__(self) -> None:
         if not isinstance(self.frames, tuple):
@@ -196,13 +208,19 @@ class Delegation:
 
     @staticmethod
     def from_dict(d: dict) -> Delegation:
-        return Delegation(id=d["id"], scope=d["scope"], granted_at=float(d["granted_at"]),
-                          expires_at=d.get("expires_at"), note=d.get("note", ""))
+        return Delegation(
+            id=d["id"],
+            scope=d["scope"],
+            granted_at=float(d["granted_at"]),
+            expires_at=d.get("expires_at"),
+            note=d.get("note", ""),
+        )
 
 
 # --------------------------------------------------------------------------
 # Wire format: {"type": ..., "body": {...}, "mac": hex}
 # --------------------------------------------------------------------------
+
 
 def _canonical(obj: dict) -> bytes:
     return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()

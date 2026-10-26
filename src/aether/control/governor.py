@@ -23,19 +23,27 @@ import threading
 import time
 from collections.abc import Callable
 
-from .intent import BadSignature, Delegation, GamepadFrame, IntentPacket, verify_message
-from .motor import MotorModel
 from .adapters import OutputAdapter
+from .intent import BadSignature, Delegation, GamepadFrame, IntentPacket, verify_message
 from .intent_log import IntentLog
+from .motor import MotorModel
 from .policy import GovernorConfig, GovernorPolicy
 from .safety import KillSwitch
 
 
 class Governor:
-    def __init__(self, cfg: GovernorConfig, motor: MotorModel, adapter: OutputAdapter,
-                 log: IntentLog, killswitch: KillSwitch, focus: Callable[[], bool],
-                 clock: Callable[[], float] = time.monotonic,
-                 seal_key: bytes | None = None, session_info: dict | None = None):
+    def __init__(
+        self,
+        cfg: GovernorConfig,
+        motor: MotorModel,
+        adapter: OutputAdapter,
+        log: IntentLog,
+        killswitch: KillSwitch,
+        focus: Callable[[], bool],
+        clock: Callable[[], float] = time.monotonic,
+        seal_key: bytes | None = None,
+        session_info: dict | None = None,
+    ):
         self.cfg = cfg
         self.policy = GovernorPolicy(cfg)
         self.motor = motor
@@ -45,14 +53,13 @@ class Governor:
         self.focus = focus
         self.clock = clock
         self._out_lock = threading.Lock()
-        self._claims: dict[str, tuple[object, float]] = {}   # control -> (player value, time)
+        self._claims: dict[str, tuple[object, float]] = {}  # control -> (player value, time)
         self._watchdog_neutral = False
         self.running = True
         self.stats = {"allowed": 0, "denied": 0, "bad_signature": 0, "malformed": 0}
         self.seal_key = seal_key
         self.kill.on_trip(self._on_trip)
-        self.log.append("session_start", adapter=adapter.name, config=vars(cfg),
-                        **(session_info or {}))
+        self.log.append("session_start", adapter=adapter.name, config=vars(cfg), **(session_info or {}))
 
     # ------------------------------------------------------------------
     def _on_trip(self, reason: str) -> None:
@@ -84,11 +91,21 @@ class Governor:
             p = IntentPacket.from_dict(body)
             focused = self.focus()
             d = self.policy.evaluate(p, now, focused)
-            self.log.append("intent", allow=d.allow, reasons=d.reasons, source=p.source.value,
-                            age_ms=round((now - p.created_at) * 1000.0, 1),
-                            seq=p.seq, producer=p.producer, claims=list(p.claims), delegation_id=p.delegation_id,
-                            player_intent_ref=p.player_intent_ref, confidence=p.confidence,
-                            frames=len(p.frames), note=p.note)
+            self.log.append(
+                "intent",
+                allow=d.allow,
+                reasons=d.reasons,
+                source=p.source.value,
+                age_ms=round((now - p.created_at) * 1000.0, 1),
+                seq=p.seq,
+                producer=p.producer,
+                claims=list(p.claims),
+                delegation_id=p.delegation_id,
+                player_intent_ref=p.player_intent_ref,
+                confidence=p.confidence,
+                frames=len(p.frames),
+                note=p.note,
+            )
             if d.allow and d.packet is not None and d.packet.claims:
                 self.stats["allowed"] += 1
                 f = d.packet.frames[-1]
@@ -98,7 +115,7 @@ class Governor:
                 self.stats["allowed"] += 1
                 self._watchdog_neutral = False
                 if d.packet.source.value == "player":
-                    self._claims.clear()                 # full takeover supersedes partial claims
+                    self._claims.clear()  # full takeover supersedes partial claims
                 self.motor.schedule(d.packet.frames, d.packet.frame_dt_ms, d.packet.source, now)
             else:
                 self.stats["denied"] += 1
@@ -115,8 +132,9 @@ class Governor:
         elif msg_type == "command":
             # A player instruction (voice, gaze, switch). Logged so later output can cite it.
             self.policy.note_presence(now)
-            self.log.append("player_command", **{k: body.get(k) for k in
-                                                 ("id", "verb", "target", "manner", "scope", "text", "via")})
+            self.log.append(
+                "player_command", **{k: body.get(k) for k in ("id", "verb", "target", "manner", "scope", "text", "via")}
+            )
         elif msg_type == "halt":
             self.kill.trip(body.get("reason", "halt message"))
         elif msg_type == "resume":
@@ -147,8 +165,12 @@ class Governor:
         # it quiet while it plays out, and packets that produce no frames cannot keep a held
         # value alive.
         last = self.motor.last_played
-        if (last is not None and not self._watchdog_neutral and not self.motor.pending()
-                and (now - last) * 1000.0 > self.cfg.watchdog_ms):
+        if (
+            last is not None
+            and not self._watchdog_neutral
+            and not self.motor.pending()
+            and (now - last) * 1000.0 > self.cfg.watchdog_ms
+        ):
             self.motor.clear()
             self._watchdog_neutral = True
             self.log.append("watchdog", note=f"no output played for {self.cfg.watchdog_ms} ms; easing to neutral")
@@ -181,6 +203,7 @@ class Governor:
     def serve(self, endpoint: str, key: bytes, tick_hz: float = 120.0) -> None:
         """Main loop. endpoint must be a localhost address."""
         import zmq
+
         if not (endpoint.startswith("tcp://127.0.0.1:") or endpoint.startswith("ipc://")):
             raise ValueError("the Governor only listens on localhost")
         ctx = zmq.Context()
@@ -203,7 +226,7 @@ class Governor:
                 if self.clock() >= next_tick:
                     self.tick()
                     next_tick += period
-                    if next_tick < self.clock():          # fell behind: do not burst
+                    if next_tick < self.clock():  # fell behind: do not burst
                         next_tick = self.clock() + period
         finally:
             self.close()

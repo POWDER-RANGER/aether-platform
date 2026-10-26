@@ -13,14 +13,14 @@ import json
 import pytest
 from conftest import FakeClock
 
-from aether.control.settings import load_settings
+from aether.control.adapters import DryRunAdapter
 from aether.control.governor import Governor
+from aether.control.intent import Delegation, GamepadFrame, IntentPacket, Source, sign_message
 from aether.control.intent_log import IntentLog
+from aether.control.motor import MotorModel, MotorProfile
 from aether.control.policy import GovernorConfig
 from aether.control.safety import KillSwitch
-from aether.control.intent import Delegation, GamepadFrame, IntentPacket, Source, sign_message
-from aether.control.motor import MotorModel, MotorProfile
-from aether.control.adapters import DryRunAdapter
+from aether.control.settings import load_settings
 
 KEY = b"r" * 32
 
@@ -28,8 +28,16 @@ KEY = b"r" * 32
 def make(tmp_path, clock, profile=None, adapter=None, **cfg):
     adapter = adapter or DryRunAdapter(keep=1)
     kill = KillSwitch(tmp_path / "STOP")
-    gov = Governor(GovernorConfig(**cfg), MotorModel(profile or MotorProfile(), seed=1), adapter,
-                   IntentLog(tmp_path / "s.jsonl"), kill, lambda: True, clock=clock, seal_key=KEY)
+    gov = Governor(
+        GovernorConfig(**cfg),
+        MotorModel(profile or MotorProfile(), seed=1),
+        adapter,
+        IntentLog(tmp_path / "s.jsonl"),
+        kill,
+        lambda: True,
+        clock=clock,
+        seal_key=KEY,
+    )
     return gov, adapter, kill
 
 
@@ -38,9 +46,16 @@ def grant(gov, clock, scope="full_autopilot"):
 
 
 def chunk(seq, clock, lx, n=16, dt=1000 / 60):
-    return IntentPacket(seq=seq, source=Source.REFLEX, created_at=clock(), ttl_ms=400,
-                        frames=tuple(GamepadFrame(lx=lx) for _ in range(n)), frame_dt_ms=dt,
-                        delegation_id="d1", producer="p").to_dict()
+    return IntentPacket(
+        seq=seq,
+        source=Source.REFLEX,
+        created_at=clock(),
+        ttl_ms=400,
+        frames=tuple(GamepadFrame(lx=lx) for _ in range(n)),
+        frame_dt_ms=dt,
+        delegation_id="d1",
+        producer="p",
+    ).to_dict()
 
 
 def drive(gov, clock, seconds, send_every=None, lx=0.8, first_seq=1, tick=1 / 120):
@@ -58,6 +73,7 @@ def drive(gov, clock, seconds, send_every=None, lx=0.8, first_seq=1, tick=1 / 12
 
 # --------------------------------------------------------------------------- F1 / F2
 
+
 @pytest.mark.parametrize("interval", [0.05, 0.10, 0.15, 0.20, 0.30])
 def test_fast_packet_stream_is_not_starved_by_reaction_delay(tmp_path, interval):
     """Packets arriving faster than the reaction delay used to erase each other: nothing played."""
@@ -66,9 +82,9 @@ def test_fast_packet_stream_is_not_starved_by_reaction_delay(tmp_path, interval)
     grant(gov, c)
     out = drive(gov, c, 4.0, send_every=interval)
     onset = next(t for t, v in out if v > 0.4)
-    assert onset < 0.7                                        # one reaction delay, once
+    assert onset < 0.7  # one reaction delay, once
     tail = [v for t, v in out if t > 1.5]
-    assert min(tail) > 0.6                                    # and then it stays on
+    assert min(tail) > 0.6  # and then it stays on
 
 
 def test_reaction_delay_still_applies_at_onset(tmp_path):
@@ -77,7 +93,7 @@ def test_reaction_delay_still_applies_at_onset(tmp_path):
     grant(gov, c)
     out = drive(gov, c, 1.0, send_every=0.1)
     first_move = next(t for t, v in out if v > 0.05)
-    assert first_move >= 0.12                                 # reaction_min_ms: humanization kept
+    assert first_move >= 0.12  # reaction_min_ms: humanization kept
 
 
 def test_newest_command_wins_instead_of_a_stale_value_being_held(tmp_path):
@@ -94,14 +110,24 @@ def test_watchdog_measures_played_output_not_packet_arrival(tmp_path):
     c = FakeClock()
     gov, _, _ = make(tmp_path, c, watchdog_ms=500)
     grant(gov, c)
-    drive(gov, c, 1.0, send_every=0.1)                        # real output, held at 0.8
+    drive(gov, c, 1.0, send_every=0.1)  # real output, held at 0.8
     seq = 1000
     t0 = c()
     last = 0.8
     while c() - t0 < 1.5:
         if int((c() - t0) * 10) != int((c() - t0 - 1 / 120) * 10):
-            gov.handle("intent", IntentPacket(seq=seq, source=Source.REFLEX, created_at=c(), ttl_ms=400,
-                                              frames=(), delegation_id="d1", producer="p").to_dict())
+            gov.handle(
+                "intent",
+                IntentPacket(
+                    seq=seq,
+                    source=Source.REFLEX,
+                    created_at=c(),
+                    ttl_ms=400,
+                    frames=(),
+                    delegation_id="d1",
+                    producer="p",
+                ).to_dict(),
+            )
             seq += 1
         c.advance(1 / 120)
         last = gov.tick().lx
@@ -112,7 +138,7 @@ def test_long_chunk_still_plays_out_with_continuity(tmp_path):
     c = FakeClock()
     gov, _, _ = make(tmp_path, c, watchdog_ms=500)
     grant(gov, c)
-    gov.handle("intent", chunk(1, c, 0.7, n=16, dt=100.0))     # 1.5 s long
+    gov.handle("intent", chunk(1, c, 0.7, n=16, dt=100.0))  # 1.5 s long
     out = drive(gov, c, 1.5, first_seq=2)
     assert not gov._watchdog_neutral
     assert max(v for t, v in out if t > 1.0) > 0.6
@@ -122,15 +148,24 @@ def test_long_chunk_still_plays_out_with_continuity(tmp_path):
 
 BAD_BODIES = {
     "missing fields": {"seq": 1},
-    "unknown button": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100,
-                       "frames": [{"buttons": ["TRIANGLE"]}]},
-    "nan stick": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100,
-                  "frames": [{"lx": float("nan")}]},
-    "inf stick": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100,
-                  "frames": [{"ly": float("inf")}]},
+    "unknown button": {
+        "seq": 1,
+        "source": "reflex",
+        "created_at": 0.0,
+        "ttl_ms": 100,
+        "frames": [{"buttons": ["TRIANGLE"]}],
+    },
+    "nan stick": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100, "frames": [{"lx": float("nan")}]},
+    "inf stick": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100, "frames": [{"ly": float("inf")}]},
     "nan timestamp": {"seq": 1, "source": "reflex", "created_at": float("nan"), "ttl_ms": 100, "frames": []},
-    "zero frame spacing": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100,
-                           "frames": [{}], "frame_dt_ms": 0},
+    "zero frame spacing": {
+        "seq": 1,
+        "source": "reflex",
+        "created_at": 0.0,
+        "ttl_ms": 100,
+        "frames": [{}],
+        "frame_dt_ms": 0,
+    },
     "frames not a list": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100, "frames": 5},
     "huge chunk": {"seq": 1, "source": "reflex", "created_at": 0.0, "ttl_ms": 100, "frames": [{}] * 5000},
 }
@@ -141,11 +176,11 @@ def test_malformed_packet_is_rejected_logged_and_the_session_continues(tmp_path,
     c = FakeClock()
     gov, adapter, _ = make(tmp_path, c)
     grant(gov, c)
-    gov.handle_raw(KEY, sign_message(KEY, "intent", BAD_BODIES[name]))      # must not raise
+    gov.handle_raw(KEY, sign_message(KEY, "intent", BAD_BODIES[name]))  # must not raise
     assert gov.stats["malformed"] == 1
     gov.handle("intent", chunk(2, c, 0.8))
     out = drive(gov, c, 1.0, first_seq=3)
-    assert out[-1][1] > 0.5                                    # the Governor is still serving
+    assert out[-1][1] > 0.5  # the Governor is still serving
     gov.close()
     kinds = [json.loads(line)["record"]["kind"] for line in (tmp_path / "s.jsonl").read_text().splitlines()]
     assert "rejected_message" in kinds
@@ -154,7 +189,7 @@ def test_malformed_packet_is_rejected_logged_and_the_session_continues(tmp_path,
 def test_malformed_grant_is_rejected_not_fatal(tmp_path):
     c = FakeClock()
     gov, _, _ = make(tmp_path, c)
-    gov.handle_raw(KEY, sign_message(KEY, "grant", {"id": "x"}))           # missing scope
+    gov.handle_raw(KEY, sign_message(KEY, "grant", {"id": "x"}))  # missing scope
     assert gov.stats["malformed"] == 1 and not gov.policy.delegations
 
 
@@ -164,10 +199,11 @@ def test_gamepad_frame_rejects_non_finite_values():
             GamepadFrame(lx=bad)
         with pytest.raises(ValueError):
             GamepadFrame(rt=bad)
-    assert GamepadFrame(lx=5.0).lx == 1.0                      # ordinary out-of-range still clamps
+    assert GamepadFrame(lx=5.0).lx == 1.0  # ordinary out-of-range still clamps
 
 
 # --------------------------------------------------------------------------- F5
+
 
 def test_grant_outside_the_packs_scopes_is_refused(tmp_path):
     c = FakeClock()
@@ -186,6 +222,7 @@ def test_no_scope_limit_when_none_configured(tmp_path):
 
 
 # --------------------------------------------------------------------------- F6
+
 
 class OrderCheckingAdapter(DryRunAdapter):
     def __init__(self):
@@ -210,6 +247,7 @@ def test_halt_is_latched_before_neutral_is_written_on_trip(tmp_path):
 
 
 # --------------------------------------------------------------------------- F7
+
 
 def test_default_stop_file_is_absolute_and_independent_of_cwd(tmp_path, monkeypatch):
     s1 = load_settings()

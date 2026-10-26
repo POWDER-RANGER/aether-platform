@@ -27,12 +27,29 @@ from aether.control.intent import GamepadFrame
 
 # Order of NitroGen's button vector (nitrogen/shared.py, BUTTON_ACTION_TOKENS).
 NITROGEN_TOKENS = (
-    "BACK", "DPAD_DOWN", "DPAD_LEFT", "DPAD_RIGHT", "DPAD_UP", "EAST", "GUIDE",
-    "LEFT_SHOULDER", "LEFT_THUMB", "LEFT_TRIGGER", "NORTH", "RIGHT_BOTTOM", "RIGHT_LEFT",
-    "RIGHT_RIGHT", "RIGHT_SHOULDER", "RIGHT_THUMB", "RIGHT_TRIGGER", "RIGHT_UP", "SOUTH",
-    "START", "WEST",
+    "BACK",
+    "DPAD_DOWN",
+    "DPAD_LEFT",
+    "DPAD_RIGHT",
+    "DPAD_UP",
+    "EAST",
+    "GUIDE",
+    "LEFT_SHOULDER",
+    "LEFT_THUMB",
+    "LEFT_TRIGGER",
+    "NORTH",
+    "RIGHT_BOTTOM",
+    "RIGHT_LEFT",
+    "RIGHT_RIGHT",
+    "RIGHT_SHOULDER",
+    "RIGHT_THUMB",
+    "RIGHT_TRIGGER",
+    "RIGHT_UP",
+    "SOUTH",
+    "START",
+    "WEST",
 )
-_IGNORED = {"RIGHT_BOTTOM", "RIGHT_LEFT", "RIGHT_RIGHT", "RIGHT_UP"}   # not used by NitroGen's own player
+_IGNORED = {"RIGHT_BOTTOM", "RIGHT_LEFT", "RIGHT_RIGHT", "RIGHT_UP"}  # not used by NitroGen's own player
 BUTTON_THRESHOLD = 0.5
 
 
@@ -55,14 +72,20 @@ def prediction_to_frames(pred: dict, threshold: float = BUTTON_THRESHOLD) -> lis
     frames = []
     for i in range(n):
         vals = dict(zip(NITROGEN_TOKENS, buttons[i]))
-        pressed = frozenset(name for name, v in vals.items()
-                            if name not in _IGNORED and "TRIGGER" not in name and v > threshold)
-        frames.append(GamepadFrame(
-            lx=j_left[i][0], ly=-j_left[i][1],
-            rx=j_right[i][0], ry=-j_right[i][1],
-            lt=vals["LEFT_TRIGGER"], rt=vals["RIGHT_TRIGGER"],
-            buttons=pressed,
-        ))
+        pressed = frozenset(
+            name for name, v in vals.items() if name not in _IGNORED and "TRIGGER" not in name and v > threshold
+        )
+        frames.append(
+            GamepadFrame(
+                lx=j_left[i][0],
+                ly=-j_left[i][1],
+                rx=j_right[i][0],
+                ry=-j_right[i][1],
+                lt=vals["LEFT_TRIGGER"],
+                rt=vals["RIGHT_TRIGGER"],
+                buttons=pressed,
+            )
+        )
     return frames
 
 
@@ -71,6 +94,7 @@ class NitroGenServer:
 
     def __init__(self, host: str = "127.0.0.1", port: int = 5555, timeout_ms: int = 30000):
         import zmq
+
         self._zmq = zmq
         self.addr = f"tcp://{host}:{port}"
         self.timeout_ms = timeout_ms
@@ -87,10 +111,10 @@ class NitroGenServer:
     def _call(self, request: dict) -> dict:
         self.sock.send(pickle.dumps(request))
         try:
-            resp = pickle.loads(self.sock.recv())   # local server only; see module docstring
+            resp = pickle.loads(self.sock.recv())  # local server only; see module docstring
         except self._zmq.Again:
             self.sock.close()
-            self._connect()                          # a REQ socket is stuck after a timeout
+            self._connect()  # a REQ socket is stuck after a timeout
             raise TimeoutError("NitroGen server did not answer in time") from None
         if resp.get("status") != "ok":
             raise RuntimeError(resp.get("message", "server error"))
@@ -106,10 +130,19 @@ class NitroGenServer:
         return self._call({"type": "predict", "image": image})["pred"]
 
 
-def run(governor: GovernorClient, process_name: str, delegation_id: str, *,
-        port: int = 5555, env_fps: int = 60, capture_fps: int = 30,
-        metrics_path: str | Path = "logs/reflex_metrics.csv", max_steps: int | None = None,
-        capture=None, server=None) -> int:
+def run(
+    governor: GovernorClient,
+    process_name: str,
+    delegation_id: str,
+    *,
+    port: int = 5555,
+    env_fps: int = 60,
+    capture_fps: int = 30,
+    metrics_path: str | Path = "logs/reflex_metrics.csv",
+    max_steps: int | None = None,
+    capture=None,
+    server=None,
+) -> int:
     """Returns the number of chunks sent. `capture` (anything with grab() and
     close()) and `server` can be injected for headless tests."""
     from PIL import Image
@@ -123,6 +156,7 @@ def run(governor: GovernorClient, process_name: str, delegation_id: str, *,
 
     if capture is None:
         from aether.capture.screen import WindowCapture
+
         capture = WindowCapture(process_name, target_fps=capture_fps)
     cap = capture
     metrics_path = Path(metrics_path)
@@ -146,10 +180,19 @@ def run(governor: GovernorClient, process_name: str, delegation_id: str, *,
                 t2 = time.perf_counter()
                 frames = prediction_to_frames(pred)
                 # Each NitroGen action is held for `ratio` game frames.
-                governor.send_frames(frames, frame_dt_ms=frame_dt_ms, ttl_ms=400,
-                                     delegation_id=delegation_id, note="nitrogen chunk")
-                w.writerow([f"{time.time():.3f}", step, f"{(t1 - t0) * 1000:.1f}",
-                            f"{(t2 - t1) * 1000:.1f}", len(frames), f"{len(frames) * frame_dt_ms:.0f}"])
+                governor.send_frames(
+                    frames, frame_dt_ms=frame_dt_ms, ttl_ms=400, delegation_id=delegation_id, note="nitrogen chunk"
+                )
+                w.writerow(
+                    [
+                        f"{time.time():.3f}",
+                        step,
+                        f"{(t1 - t0) * 1000:.1f}",
+                        f"{(t2 - t1) * 1000:.1f}",
+                        len(frames),
+                        f"{len(frames) * frame_dt_ms:.0f}",
+                    ]
+                )
                 mf.flush()
                 step += 1
         finally:

@@ -29,23 +29,23 @@ _AXES = ("lx", "ly", "rx", "ry", "lt", "rt")
 @dataclass
 class MotorProfile:
     reaction_median_ms: float = 200.0
-    reaction_sigma: float = 0.25          # log-normal shape
+    reaction_sigma: float = 0.25  # log-normal shape
     reaction_min_ms: float = 120.0
     reaction_max_ms: float = 400.0
-    episode_gap_ms: float = 500.0         # idle time after which the next command is a new "onset" (gets a reaction delay)
-    move_a_ms: float = 40.0               # Fitts: T = a + b * log2(1 + distance / width)
+    episode_gap_ms: float = 500.0  # idle time after which the next command is a new "onset" (gets a reaction delay)
+    move_a_ms: float = 40.0  # Fitts: T = a + b * log2(1 + distance / width)
     move_b_ms: float = 70.0
     move_width: float = 0.15
-    tremor_amp: float = 0.012             # stick units
+    tremor_amp: float = 0.012  # stick units
     tremor_hz_min: float = 8.0
     tremor_hz_max: float = 12.0
     drift_sigma: float = 0.01
     drift_tau_s: float = 1.5
-    hold_threshold: float = 0.05          # stick counts as "held" above this magnitude
+    hold_threshold: float = 0.05  # stick counts as "held" above this magnitude
     button_min_hold_ms: float = 60.0
     button_min_gap_ms: float = 50.0
     max_presses_per_sec: float = 8.0
-    humanize: bool = True                 # development mode may switch this off for benchmarking
+    humanize: bool = True  # research mode may switch this off for benchmarking
 
     @staticmethod
     def from_dict(d: dict | None) -> MotorProfile:
@@ -57,12 +57,12 @@ class MotorProfile:
         return p
 
 
-_CLEAR = GamepadFrame.neutral()           # sentinel queued by clear(); does not count as played output
+_CLEAR = GamepadFrame.neutral()  # sentinel queued by clear(); does not count as played output
 
 
 def min_jerk(tau: float) -> float:
     tau = 0.0 if tau < 0 else 1.0 if tau > 1 else tau
-    return tau ** 3 * (10 - 15 * tau + 6 * tau * tau)
+    return tau**3 * (10 - 15 * tau + 6 * tau * tau)
 
 
 @dataclass
@@ -82,21 +82,22 @@ class MotorModel:
     def __init__(self, profile: MotorProfile | None = None, seed: int | None = None):
         self.p = profile or MotorProfile()
         self.rng = random.Random(seed)
-        self._queue: deque[tuple[float, GamepadFrame, bool]] = deque()   # (due_time, frame, humanize)
+        self._queue: deque[tuple[float, GamepadFrame, bool]] = deque()  # (due_time, frame, humanize)
         self._target = GamepadFrame.neutral()
         self._humanize = False
         self._traj: dict[str, _Traj] = {a: _Traj(0.0, 0.0, 0.0, 0.0) for a in _AXES}
         self._pos: dict[str, float] = {a: 0.0 for a in _AXES}
-        self._pressed: dict[str, float] = {}          # button -> press time
+        self._pressed: dict[str, float] = {}  # button -> press time
         self._released_at: dict[str, float] = {}
         self._press_times: deque[float] = deque()
         self._tremor_phase = {a: self.rng.uniform(0, 2 * math.pi) for a in ("lx", "ly", "rx", "ry")}
-        self._tremor_hz = {a: self.rng.uniform(self.p.tremor_hz_min, self.p.tremor_hz_max)
-                           for a in ("lx", "ly", "rx", "ry")}
+        self._tremor_hz = {
+            a: self.rng.uniform(self.p.tremor_hz_min, self.p.tremor_hz_max) for a in ("lx", "ly", "rx", "ry")
+        }
         self._drift = {a: 0.0 for a in ("lx", "ly", "rx", "ry")}
         self._last_t: float | None = None
-        self._last_played: float | None = None        # when a scheduled frame last reached the output
-        self._onset_due = 0.0                         # earliest time the current episode may produce output
+        self._last_played: float | None = None  # when a scheduled frame last reached the output
+        self._onset_due = 0.0  # earliest time the current episode may produce output
 
     # ------------------------------------------------------------------
     def sample_reaction_s(self) -> float:
@@ -118,8 +119,7 @@ class MotorModel:
         """Time the most recent scheduled frame was played, or None if nothing is in flight."""
         return self._last_played
 
-    def schedule(self, frames: tuple[GamepadFrame, ...], frame_dt_ms: float,
-                 source: Source, now: float) -> float:
+    def schedule(self, frames: tuple[GamepadFrame, ...], frame_dt_ms: float, source: Source, now: float) -> float:
         """Merge a new chunk into the output stream. Returns the start time.
 
         Companion output gets one reaction delay per *episode* (the first command after
@@ -134,12 +134,11 @@ class MotorModel:
             self._queue.clear()
             start = now
         else:
-            idle = (self._last_played is None
-                    or (now - self._last_played) * 1000.0 > self.p.episode_gap_ms)
+            idle = self._last_played is None or (now - self._last_played) * 1000.0 > self.p.episode_gap_ms
             if idle and not self._queue:
                 self._onset_due = now + self.sample_reaction_s()
             start = max(now, self._onset_due)
-            kept = [q for q in self._queue if q[0] < start]       # older frames that are already due
+            kept = [q for q in self._queue if q[0] < start]  # older frames that are already due
             self._queue.clear()
             self._queue.extend(kept)
         for i, f in enumerate(frames):
@@ -216,11 +215,14 @@ class MotorModel:
                 held = math.hypot(vals[stick[0]], vals[stick[1]]) > self.p.hold_threshold
                 for a in stick:
                     tau = self.p.drift_tau_s
-                    self._drift[a] += (-self._drift[a] / tau) * dt + \
-                        self.p.drift_sigma * math.sqrt(2.0 / tau) * math.sqrt(dt) * self.rng.gauss(0, 1)
+                    self._drift[a] += (-self._drift[a] / tau) * dt + self.p.drift_sigma * math.sqrt(
+                        2.0 / tau
+                    ) * math.sqrt(dt) * self.rng.gauss(0, 1)
                     if held:
-                        vals[a] += self.p.tremor_amp * math.sin(
-                            2 * math.pi * self._tremor_hz[a] * now + self._tremor_phase[a]) + self._drift[a]
+                        vals[a] += (
+                            self.p.tremor_amp * math.sin(2 * math.pi * self._tremor_hz[a] * now + self._tremor_phase[a])
+                            + self._drift[a]
+                        )
 
         buttons = self._buttons(self._target.buttons, now)
         return GamepadFrame(vals["lx"], vals["ly"], vals["rx"], vals["ry"], vals["lt"], vals["rt"], buttons)

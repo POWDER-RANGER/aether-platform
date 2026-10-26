@@ -8,6 +8,8 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 
 ## Status
 
+Full build status with evidence: `docs/STATUS.md`.
+
 | Part | Status |
 | --- | --- |
 | Charter, ecosystem map, decision register, reference inventory | Draft for owner review |

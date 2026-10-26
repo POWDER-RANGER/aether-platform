@@ -225,6 +225,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     kb.add_argument("--no-focus-test", dest="focus_test", action="store_false", help="skip the focus-loss check")
     kb.add_argument("--report", help="write a JSON report of the run")
+    kb.add_argument(
+        "--type",
+        help='after the checks, type this text (letters, digits, spaces) through the Governor, e.g. "hello world"',
+    )
+    kb.add_argument("--linger", type=float, default=0.0, help="keep the window open this many seconds at the end")
     kb.set_defaults(fn=lambda a: __import__("aether.kbmtest", fromlist=["run"]).run(a))
     v = sub.add_parser("verify-log")
     v.add_argument("path")

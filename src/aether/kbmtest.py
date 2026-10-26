@@ -65,6 +65,72 @@ def take_foreground(user32, hwnd: int) -> None:
             user32.AttachThreadInput(me, fg_thread, False)
 
 
+TYPE_TARGETS = ("SOUTH", "EAST", "WEST", "NORTH", "LEFT_SHOULDER", "RIGHT_SHOULDER", "DPAD_UP", "DPAD_DOWN",
+                "DPAD_LEFT", "DPAD_RIGHT", "LEFT_THUMB", "RIGHT_THUMB", "START", "BACK")  # fmt: skip
+
+
+def typing_mapping(text: str) -> tuple[dict[str, str], dict[str, str]]:
+    """Map each distinct character of `text` (letters, digits, space) to its own controller button.
+    Returns (kbm map for KbmMapping.from_dict, char -> button)."""
+    chars = []
+    for ch in text.lower():
+        if ch not in chars:
+            chars.append(ch)
+    if len(chars) > len(TYPE_TARGETS):
+        raise ValueError(f"at most {len(TYPE_TARGETS)} distinct characters")
+    kmap, by_char = {}, {}
+    for ch, target in zip(chars, TYPE_TARGETS):
+        key = "SPACE" if ch == " " else ch.upper()
+        if not (key == "SPACE" or key.isalnum()):
+            raise ValueError(f"cannot type {ch!r}: letters, digits and space only")
+        kmap[target] = key
+        by_char[ch] = target
+    return kmap, by_char
+
+
+def type_text(a, s, root, textbox, focused, user32, hwnd) -> str:
+    """Type `a.type` into the test window through a second Governor session (player-sourced frames,
+    one controller button per character, keyboard adapter mapping). Returns what the window received."""
+    from .control.governor import Governor
+    from .control.intent_log import IntentLog, load_or_create_log_key
+    from .control.motor import MotorModel
+    from .control.policy import GovernorConfig
+    from .control.safety import KillSwitch
+
+    kmap, by_char = typing_mapping(a.type)
+    adapter = KeyboardMouseAdapter(KbmMapping.from_dict(kmap), focus=focused)
+    log = IntentLog(Path(s.log_dir) / f"kbmtype-{time.strftime('%Y%m%d-%H%M%S')}.jsonl")
+    kill = KillSwitch(s.stop_file)
+    gov = Governor(GovernorConfig(require_focus=False), MotorModel(s.motor), adapter, log, kill, focused,
+                   seal_key=load_or_create_log_key(), session_info={"purpose": "kbmtest typing", "text": a.type})  # fmt: skip
+    textbox.delete("1.0", "end")
+    textbox.focus_set()
+    seq = 0
+
+    def hold(frame: GamepadFrame, seconds: float) -> None:
+        nonlocal seq
+        end = time.monotonic() + seconds
+        while time.monotonic() < end and not kill.tripped:
+            seq += 1
+            gov.handle("intent", IntentPacket(seq=seq, source=Source.PLAYER, created_at=time.monotonic(), ttl_ms=200,
+                                              frames=(frame,), note="kbmtest typing").to_dict())  # fmt: skip
+            for _ in range(3):
+                gov.tick()
+                root.update()
+                time.sleep(1 / 120)
+
+    try:
+        hold(GamepadFrame(), 0.3)
+        for ch in a.type.lower():
+            hold(GamepadFrame(buttons=frozenset({by_char[ch]})), 0.12)
+            hold(GamepadFrame(), 0.15)
+        hold(GamepadFrame(), 0.3)
+    finally:
+        gov.close()
+    print(f"  typing log: {log.path}")
+    return textbox.get("1.0", "end-1c")
+
+
 def run(a) -> int:
     import tkinter as tk
 
@@ -88,12 +154,19 @@ def run(a) -> int:
     root.title("Aether keyboard/mouse test")
     root.geometry("640x420+240+200")
     root.attributes("-topmost", True)
-    tk.Label(root, text="Æther keyboard/mouse test. Hands off keyboard and mouse until it closes.", pady=20).pack()
+    tk.Label(root, text="Æther keyboard/mouse test. Hands off keyboard and mouse until it closes.", pady=8).pack()
+    tk.Label(root, text="Keys this window receives appear below:").pack()
+    textbox = tk.Text(root, height=8, width=60, font=("Consolas", 16))
+    textbox.pack(padx=12, pady=8)
+    status = tk.Label(root, text="", font=("Consolas", 11))
+    status.pack()
+    textbox.bind("<KeyPress>", lambda e: status.config(text=f"last key: {e.keysym}"), add="+")
     root.update()
     root.focus_force()
     root.update()
     hwnd = user32.GetAncestor(root.winfo_id(), 2)
     take_foreground(user32, hwnd)
+    textbox.focus_set()
     root.update()
 
     def focused() -> bool:
@@ -196,6 +269,9 @@ def run(a) -> int:
             print(f"  {'focus loss releases keys':26} " + ("OK" if problem is None else f"MISMATCH {problem}"))
             root.deiconify()
             root.update()
+            take_foreground(user32, hwnd)
+            textbox.focus_set()
+            root.update()
         if kill.tripped:
             print("Kill switch tripped; stopping.")
             for _ in range(12):
@@ -206,6 +282,17 @@ def run(a) -> int:
             ok = not stuck
             results.append({"step": "HALT", "ok": ok, "problem": None if ok else f"stuck keys {stuck}"})
             print(f"  {'after halt':26} " + ("ALL RELEASED" if ok else f"STUCK {stuck}"))
+        if a.type and not kill.tripped:
+            typed = type_text(a, s, root, textbox, focused, user32, hwnd)
+            ok = typed == a.type
+            results.append(
+                {"step": f"type {a.type!r}", "ok": ok, "problem": None if ok else f"window received {typed!r}"}
+            )
+            print(f"  {'type ' + repr(a.type):26} " + ("OK" if ok else f"MISMATCH window received {typed!r}"))
+        end = time.monotonic() + a.linger
+        while time.monotonic() < end:
+            root.update()
+            time.sleep(0.02)
     finally:
         gov.close()
         root.destroy()

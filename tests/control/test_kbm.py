@@ -180,3 +180,15 @@ def test_kbmtest_steps_cover_every_mapped_output():
     assert keys == {vk for _, vk in m.keys} and buttons == {b for _, b in m.buttons}
     assert len(moves) == 2 * len(m.axes)  # both directions of every mouse axis
     assert steps[-1]["label"] == "Neutral"
+
+
+def test_typing_mapping_gives_each_character_its_own_button():
+    from aether.kbmtest import typing_mapping
+
+    kmap, by_char = typing_mapping("hello world")
+    assert set(by_char) == set("helo wrd")
+    assert len(set(by_char.values())) == len(by_char)  # one button per character
+    m = KbmMapping.from_dict(kmap)
+    assert {VK_NAMES[k] for k in ("H", "E", "L", "O", "W", "R", "D", "SPACE")} == {vk for _, vk in m.keys}
+    with pytest.raises(ValueError):
+        typing_mapping("hi!")

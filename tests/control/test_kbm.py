@@ -124,7 +124,12 @@ def test_focus_loss_releases_and_blocks_output():
 
 def test_make_adapter_builds_kbm_from_settings_section():
     with pytest.raises(ValueError):
-        make_adapter("kbm", kbm={"map": {"SOUTH": "LWIN"}})
+        make_adapter("kbm", kbm={"map": {"SOUTH": "LWIN"}}, focus=lambda: True)
+
+
+def test_make_adapter_kbm_fails_closed_without_focus_check():
+    with pytest.raises(ValueError, match="focus"):
+        make_adapter("kbm")
 
 
 # ---------------------------------------------------------------- through the Governor

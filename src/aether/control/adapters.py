@@ -167,6 +167,8 @@ def make_adapter(
     if kind == "kbm":
         from .kbm import KbmMapping, KeyboardMouseAdapter
 
+        if focus is None:  # fail closed: without a focus check, keystrokes could land in any window
+            raise ValueError("kbm output needs a focus check (the target window must be known)")
         k = kbm or {}
         mapping = KbmMapping.from_dict(k.get("map"), k.get("threshold", 0.5), k.get("mouse_px_per_s", 900.0))
         return KeyboardMouseAdapter(mapping, focus=focus)

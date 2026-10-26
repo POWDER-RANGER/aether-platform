@@ -48,6 +48,23 @@ def build_steps(m: KbmMapping) -> list[dict]:
     return steps
 
 
+def take_foreground(user32, hwnd: int) -> None:
+    """Bring the test window to the front. A background process may not call SetForegroundWindow on its own,
+    so attach to the current foreground thread's input for the duration of the call (standard Win32 pattern)."""
+    kernel32 = ctypes.WinDLL("kernel32")
+    fg = user32.GetForegroundWindow()
+    fg_thread = user32.GetWindowThreadProcessId(fg, None)
+    me = kernel32.GetCurrentThreadId()
+    attached = bool(fg_thread and fg_thread != me and user32.AttachThreadInput(me, fg_thread, True))
+    try:
+        user32.BringWindowToTop(hwnd)
+        user32.ShowWindow(hwnd, 5)  # SW_SHOW
+        user32.SetForegroundWindow(hwnd)
+    finally:
+        if attached:
+            user32.AttachThreadInput(me, fg_thread, False)
+
+
 def run(a) -> int:
     import tkinter as tk
 
@@ -76,11 +93,12 @@ def run(a) -> int:
     root.focus_force()
     root.update()
     hwnd = user32.GetAncestor(root.winfo_id(), 2)
-    user32.SetForegroundWindow(hwnd)
+    take_foreground(user32, hwnd)
     root.update()
 
     def focused() -> bool:
-        return user32.GetForegroundWindow() == hwnd
+        # minimized counts as not focused: Windows can leave a minimized window as the foreground window
+        return user32.GetForegroundWindow() == hwnd and not user32.IsIconic(hwnd)
 
     def center() -> None:
         user32.SetCursorPos(root.winfo_rootx() + 320, root.winfo_rooty() + 210)
@@ -151,14 +169,17 @@ def run(a) -> int:
             root.update()
             hold(GamepadFrame(), 0.15, "settle")
             x0, y0 = cursor()
+            m0 = adapter.stats["moves"]
             hold(step["frame"], a.hold, step["label"])
             if kill.tripped:
                 break
             x1, y1 = cursor()
+            sent = adapter.stats["moves"] - m0  # mouse-move events this adapter injected during the step
             problem = check(step, (x1 - x0, y1 - y0))
-            results.append(
-                {"step": step["label"], "ok": problem is None, "problem": problem, "moved": [x1 - x0, y1 - y0]}
-            )
+            if problem and not step["move"] and problem.startswith("cursor moved") and sent == 0:
+                problem += " (the adapter sent no mouse motion in this step: the motion came from elsewhere)"
+            results.append({"step": step["label"], "ok": problem is None, "problem": problem,
+                            "moved": [x1 - x0, y1 - y0], "adapter_moves": sent})  # fmt: skip
             print(f"  {step['label']:26} " + ("OK" if problem is None else f"MISMATCH {problem}"))
         if not kill.tripped and a.focus_test:
             first = steps[0]

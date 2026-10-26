@@ -17,7 +17,7 @@ W, S, A, D, SPACE = (VK_NAMES[k] for k in ("W", "S", "A", "D", "SPACE"))
 FAST = MotorProfile(reaction_min_ms=0, reaction_max_ms=1, tremor_amp=0, drift_sigma=0)
 
 
-def adapter(clock=None, focus=None, mapping=None):
+def adapter(clock=None, focus=lambda: True, mapping=None):
     be = RecordingBackend()
     return KeyboardMouseAdapter(
         mapping or KbmMapping.from_dict(), backend=be, focus=focus, clock=clock or FakeClock()
@@ -197,3 +197,68 @@ def test_typing_mapping_gives_each_character_its_own_button():
     assert {VK_NAMES[k] for k in ("H", "E", "L", "O", "W", "R", "D", "SPACE")} == {vk for _, vk in m.keys}
     with pytest.raises(ValueError):
         typing_mapping("hi!")
+
+
+# ---------------------------------------------------------------- review findings PR #3 (focus invariant)
+@pytest.mark.parametrize("focus", [None, "not callable"])
+def test_adapter_refuses_to_build_without_a_focus_check(focus):
+    with pytest.raises(ValueError, match="focus"):
+        KeyboardMouseAdapter(KbmMapping.from_dict(), backend=RecordingBackend(), focus=focus)
+
+
+def test_focus_check_error_releases_held_input_and_blocks_output():
+    c = FakeClock()
+    state = {"mode": "ok"}
+
+    def focus():
+        if state["mode"] == "raise":
+            raise RuntimeError("window lookup failed")
+        return True
+
+    ad, be = adapter(c, focus=focus)
+    ad.apply(GamepadFrame(ly=0.8, rt=1.0, rx=1.0))
+    assert W in ad.keys_down and "MOUSE_LEFT" in ad.buttons_down
+    state["mode"] = "raise"
+    n = len(be.events)
+    for _ in range(5):
+        c.advance(1 / 120)
+        ad.apply(GamepadFrame(ly=0.8, rt=1.0, rx=1.0))  # must not raise out of the adapter
+    new = be.events[n:]
+    assert ("key", W, False) in new and ("button", "MOUSE_LEFT", False) in new
+    assert not any(e[0] == "move" or (e[0] in ("key", "button") and e[2]) for e in new), (
+        "output while focus check failing"
+    )
+    assert not ad.keys_down and not ad.buttons_down
+    assert ad.stats["focus_errors"] == 5
+
+    state["mode"] = "ok"  # output resumes only after a clean focus check
+    c.advance(1 / 120)
+    ad.apply(GamepadFrame(ly=0.8))
+    assert ad.keys_down == {W}
+
+
+def test_focus_error_during_governor_halt_still_leaves_everything_released(tmp_path):
+    c = FakeClock()
+    state = {"raise": False}
+
+    def focus():
+        if state["raise"]:
+            raise OSError("focus provider gone")
+        return True
+
+    ad, be = adapter(c, focus=focus)
+    gov, kill = _gov(tmp_path, c, ad)
+    gov.handle("grant", Delegation(id="d1", scope="full_autopilot", granted_at=c()).to_dict())
+    frames = tuple(GamepadFrame(ly=1.0) for _ in range(16))
+    gov.handle(
+        "intent",
+        IntentPacket(
+            seq=1, source=Source.REFLEX, created_at=c(), ttl_ms=250, frames=frames, delegation_id="d1"
+        ).to_dict(),
+    )
+    _ticks(gov, c, 40)
+    assert W in ad.keys_down
+    state["raise"] = True
+    kill.trip("test")
+    _ticks(gov, c, 3)
+    assert not ad.keys_down and ("key", W, False) in be.events

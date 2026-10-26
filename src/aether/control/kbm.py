@@ -7,7 +7,8 @@ so the kill switch, policy, delegation, watchdog and neutral-on-stop rules apply
 frame releases every key and button.
 
 Safety specific to this path:
-  - focus gate: when the target window is not in front, every key and button is released and nothing is
+  - focus gate (required: the adapter refuses to build without one; a focus check that raises counts as
+    unfocused): when the target window is not in front, every key and button is released and nothing is
     sent, so keystrokes never land in another application;
   - release before press on every update, and everything released on close;
   - Windows/menu keys cannot be mapped;
@@ -213,6 +214,9 @@ class KeyboardMouseAdapter(OutputAdapter):
         clock: Callable[[], float] = time.monotonic,
         max_dt: float = 0.05,
     ):
+        if focus is None or not callable(focus):
+            # fail closed: without a focus check, keystrokes could land in any window
+            raise ValueError("KeyboardMouseAdapter needs a focus check callable (the target window must be known)")
         self.mapping = mapping or KbmMapping.from_dict()
         self.planner = KbmPlanner(self.mapping)
         self.backend = backend if backend is not None else SendInputBackend()
@@ -222,7 +226,7 @@ class KeyboardMouseAdapter(OutputAdapter):
         self.keys_down: set[int] = set()
         self.buttons_down: set[str] = set()
         self._last: float | None = None
-        self.stats = {"focus_releases": 0, "moves": 0}
+        self.stats = {"focus_releases": 0, "moves": 0, "focus_errors": 0}
 
     def release_all(self) -> None:
         for vk in sorted(self.keys_down):
@@ -237,7 +241,12 @@ class KeyboardMouseAdapter(OutputAdapter):
         now = self.clock()
         dt = 0.0 if self._last is None else min(max(now - self._last, 0.0), self.max_dt)
         self._last = now
-        if self.focus is not None and not self.focus():
+        try:
+            in_front = bool(self.focus())
+        except Exception:  # a failing focus check counts as unfocused: release and send nothing this frame
+            self.stats["focus_errors"] += 1
+            in_front = False
+        if not in_front:
             if self.keys_down or self.buttons_down:
                 self.stats["focus_releases"] += 1
             self.release_all()

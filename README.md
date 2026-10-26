@@ -1,6 +1,6 @@
 # Æther platform
 
-Local repository for `POWDER-RANGER/aether-platform` (not yet created on GitHub; `docs/decisions/DECISIONS.md` D-009).
+Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aether-platform)
 
 > The player is the legend. PR-REX is the body double.
 
@@ -12,6 +12,7 @@ Local repository for `POWDER-RANGER/aether-platform` (not yet created on GitHub;
 | --- | --- |
 | Charter, ecosystem map, decision register, reference inventory | Draft for owner review |
 | Design system (tokens, components, gallery, tests) | VERIFIED: tests pass, rendering checked |
+| Repository hygiene (secrets policy, boundary tests, workstation setup) | In progress on PR #1 |
 | AACP | Proposed specification |
 | Platform core, PR-REX runtime, Governor | NOT IMPLEMENTED here; verified reference code to be ported (D-014) |
 

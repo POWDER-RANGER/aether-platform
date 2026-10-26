@@ -13,7 +13,7 @@ Status: **accepted** (in force), **proposed** (awaiting independent review or ow
 | D-006 | — | Application shell technology | owner | — | Not needed before DS-1. Recommendation: local web UI served by the runtime process, read-only first |
 | D-007 | 2026-10-26 | Do not create seven `AETHER_*.md` files; keep one register per concern | proposed | Claude | |
 | D-008 | 2026-10-26 | AACP lives in the active Æther repository under `protocols/aacp/` until used on one real task | proposed | Claude | |
-| D-009 | 2026-10-26 | Active repository `POWDER-RANGER/aether-platform`; `powder-ranger-bot` is the read-only foundational reference | proposed | Owner (charter draft) | Not yet created on GitHub. Local git at `%USERPROFILE%\Aether\aether-platform`, no remote |
+| D-009 | 2026-10-26 | Active repository `POWDER-RANGER/aether-platform` (public, created 2026-10-26); `powder-ranger-bot` remains the read-only foundational reference | accepted | Owner; repo created | Supersedes earlier local-only note |
 | D-010 | 2026-10-26 | Interfaces use Research Mode / Companion Mode; runtime mapping from reference `development` / `deployment` is an M1 item | accepted | Project instructions §5 | |
 | D-011 | 2026-10-26 | Identity assets (wordmark, banners, site hero) keep the industrial steel-and-maroon treatment; application surfaces are flat and restrained | proposed | Claude | Reconciles owner direction 2026-10-22 with the design brief |
 | D-012 | 2026-10-26 | Core docs and interfaces use ENV-xx, SCN-xx, DG-xx identifiers | accepted | Project instructions §8 | |

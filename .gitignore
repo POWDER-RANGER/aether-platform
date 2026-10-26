@@ -1,11 +1,18 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
 .venv/
 venv/
 *.egg-info/
+.coverage
+htmlcov/
+.tox/
+dist/
+build/
 
 # Model weights and checkpoints (never committed; see THIRD-PARTY.md)
 weights/
@@ -29,3 +36,11 @@ logs/
 *.log
 recordings/
 sessions/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo

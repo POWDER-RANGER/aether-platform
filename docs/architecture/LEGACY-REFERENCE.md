@@ -1,6 +1,6 @@
 # Reference repository: inventory and migration map
 
-Source: `POWDER-RANGER/powder-ranger-bot`, retired and read-only. Read 2026-10-26 from branch `claude/main-designations` (`ad15296`), which contains everything on `main` (`4c6963d`) plus open PRs #10 and #11. Nothing here modifies that repository.
+Source: `POWDER-RANGER/powder-ranger-bot`, retired and read-only. **M1 status:** intent, Governor, policy, safety, client, intent log, motor model, filters, adapters, player input, settings, capture and the NitroGen runner are ported (see `docs/verification/M1-CONTROL.md`). Read 2026-10-26 from branch `claude/main-designations` (`ad15296`), which contains everything on `main` (`4c6963d`) plus open PRs #10 and #11. Nothing here modifies that repository.
 
 Its GitHub description ("YOLOv8 … Behavior Tree/GOAP … Ollama … DirectInput") describes the first prototype only. The current code is the Governor-based design.
 

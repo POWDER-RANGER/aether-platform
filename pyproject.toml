@@ -1,7 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aether-platform"
+version = "0.1.0"
+description = "Æther: local-first gaming intelligence and accessibility research platform. PR-REX is its companion."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pyzmq>=25",
+    "pyyaml>=6",
+    "pillow>=10",
+]
+
+[project.optional-dependencies]
+windows = [
+    "vgamepad",       # virtual X360 / DS4 via ViGEmBus
+    "dxcam",          # screen capture
+    "opencv-python",  # dxcam's frame processor imports cv2 at capture time
+    "psutil",
+]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"aether.control" = ["default.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-p no:cacheprovider"
+addopts = "-p no:cacheprovider --basetemp=.pytest_tmp"
 
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+extend-exclude = [".pytest_tmp"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# Carried from the reference repository: one-line test statements, short lambdas, long comments,
+# zip() on equal-length sequences, the str+Enum base kept for JSON-friendly values.
+ignore = ["E501", "E702", "E731", "E741", "B905", "UP042"]

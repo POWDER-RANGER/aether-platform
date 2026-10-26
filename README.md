@@ -14,7 +14,8 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 | Design system (tokens, components, gallery, tests) | VERIFIED: tests pass, rendering checked |
 | Repository hygiene (secrets policy, boundary tests, workstation setup) | VERIFIED: boundary tests in CI (PR #1) |
 | AACP | Proposed specification |
-| Platform core, PR-REX runtime, Governor | NOT IMPLEMENTED here; verified reference code to be ported (D-014) |
+| Control foundation (`aether.control`): signed intent, Governor, hash-chained log, motor model, virtual pads | Ported in M1; see `docs/verification/M1-CONTROL.md` |
+| Platform runtime (agents, tasks, policy engine, events), PR-REX perception and intelligence | NOT IMPLEMENTED |
 
 ## Layout (directories appear when their first file does)
 
@@ -31,6 +32,15 @@ Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aet
 | `scripts/brand/` | `build_tokens.py` |
 | `tests/interfaces/` | Design-token tests |
 | `tests/repo/` | Repository-boundary tests |
+
+## Install and test
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -e ".[dev]"          # add ,windows for virtual pads and capture
+.venv\Scripts\python -m pytest -q
+.venv\Scripts\python -m aether padtest --output x360 --readback   # Windows + ViGEmBus
+```
 
 ## Design system in one minute
 

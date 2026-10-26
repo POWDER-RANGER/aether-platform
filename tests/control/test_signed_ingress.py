@@ -104,9 +104,10 @@ def test_wrong_key_and_tampered_messages_are_rejected_without_output(tmp_path, c
     forger = GovernorClient(endpoint, WRONG_KEY, Source.PLAYER, clock=c)
     forger.send_frames([PUSH], frame_dt_ms=1000 / 120)
     forger.halt("forged halt must not be honoured either")
+    forged_intent, forged_halt = _recv_all(pull, 2)  # one sender: order is preserved
     honest = GovernorClient(endpoint, KEY, Source.PLAYER, clock=c)
     honest.send_frames([PUSH], frame_dt_ms=1000 / 120)
-    forged_intent, forged_halt, good = _recv_all(pull, 3)
+    (good,) = _recv_all(pull, 1)  # received separately: two PUSH sockets have no mutual ordering
     tampered = good.replace(b'"lx": 1.0', b'"lx": -1.0') if b'"lx": 1.0' in good else good[:-2] + b"xx"
     assert tampered != good
     for raw in (forged_intent, forged_halt, tampered):

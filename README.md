@@ -1,6 +1,6 @@
 # Æther platform
 
-Local repository for `POWDER-RANGER/aether-platform` (not yet created on GitHub; `docs/decisions/DECISIONS.md` D-009).
+Repository: [POWDER-RANGER/aether-platform](https://github.com/POWDER-RANGER/aether-platform)
 
 > The player is the legend. PR-REX is the body double.
 
@@ -12,6 +12,7 @@ Local repository for `POWDER-RANGER/aether-platform` (not yet created on GitHub;
 | --- | --- |
 | Charter, ecosystem map, decision register, reference inventory | Draft for owner review |
 | Design system (tokens, components, gallery, tests) | VERIFIED: tests pass, rendering checked |
+| Repository hygiene (secrets policy, boundary tests, workstation setup) | VERIFIED: boundary tests in CI (PR #1) |
 | AACP | Proposed specification |
 | Platform core, PR-REX runtime, Governor | NOT IMPLEMENTED here; verified reference code to be ported (D-014) |
 
@@ -22,10 +23,14 @@ Local repository for `POWDER-RANGER/aether-platform` (not yet created on GitHub;
 | `docs/vision/` | `CHARTER.md`, `BRAND.md` |
 | `docs/architecture/` | `ECOSYSTEM.md`, `RESOURCE-INDEX.md`, `LEGACY-REFERENCE.md` |
 | `docs/decisions/` | `DECISIONS.md` |
+| `docs/security/` | `SECRETS-POLICY.md`: what is never committed, and how that is enforced |
+| `docs/workstation/` | `SETUP.md`: reproducible workstation setup and the `ENVIRONMENT.md` template |
+| `scripts/workstation/` | `Test-Workstation.ps1`: workstation verification |
 | `protocols/aacp/specification/` | `AACP.md` |
 | `interfaces/shared/design/` | Design system: `DESIGN-SYSTEM.md`, tokens, components, gallery, fonts |
 | `scripts/brand/` | `build_tokens.py` |
 | `tests/interfaces/` | Design-token tests |
+| `tests/repo/` | Repository-boundary tests |
 
 ## Design system in one minute
 

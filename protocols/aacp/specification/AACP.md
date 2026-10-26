@@ -56,7 +56,12 @@ Status uses the six project classifications: VERIFIED, PARTIALLY VERIFIED, UNVER
 - **author**: the implementing agent ran it and pasted the command and output, or linked the CI run.
 - **independent**: a different agent or the owner re-ran it on the stated commit.
 
-An author row can reach at most PARTIALLY VERIFIED for acceptance purposes; VERIFIED for acceptance needs an independent row or CI. Nothing is reported as passing without the output or the CI link. "Should work" is UNVERIFIED.
+An author row can reach at most PARTIALLY VERIFIED for acceptance purposes; VERIFIED for acceptance needs an independent row or CI. Nothing is reported as passing without the output or the CI link.
+
+Two kinds of verification are reported separately and never substituted for each other:
+
+- **Workstation verification**: tools installed, authentication configured, paths present, interpreter runs (`scripts/workstation/Test-Workstation.ps1`). It shows a machine is ready; it says nothing about the code.
+- **Repository verification**: the change is committed and pushed, tests run against that commit, CI passes, security and license checks pass, and any runtime claim is backed by a recorded run. "Should work" is UNVERIFIED.
 
 ## 7. Review and acceptance
 

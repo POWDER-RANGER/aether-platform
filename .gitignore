@@ -1,3 +1,46 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+*.egg-info/
+.coverage
+htmlcov/
+.tox/
+dist/
+build/
+
+# Model weights and checkpoints (never committed; see THIRD-PARTY.md)
+weights/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.gguf
+
+# Secrets and machine-local state (see docs/security/SECRETS-POLICY.md)
+.env
+.env.*
+*.key
+*.pem
+STOP
+ENVIRONMENT.md
+
+# Runtime output
+logs/
+*.log
+recordings/
+sessions/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo

@@ -52,10 +52,14 @@ class CommandCenter:
         except (OSError, json.JSONDecodeError):
             manifest = None
         summary = summarize(directory)
-        stream_counts = {
-            path.stem: sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
-            for path in sorted((directory / "streams").glob("*.jsonl"))
-        } if (directory / "streams").is_dir() else {}
+        stream_counts = (
+            {
+                path.stem: sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+                for path in sorted((directory / "streams").glob("*.jsonl"))
+            }
+            if (directory / "streams").is_dir()
+            else {}
+        )
         verdict_path = Path("evidence/E-10") / f"{run_id}.json"
         try:
             verdict = json.loads(verdict_path.read_text(encoding="utf-8")) if verdict_path.is_file() else None
@@ -73,19 +77,14 @@ class CommandCenter:
         directory = self._safe_run_dir(run_id)
         if directory is None or not directory.is_dir():
             return None
-        items = [
-            {"t_mono": stamp, "stream": stream, "record": record}
-            for stamp, stream, record in merged(directory)
-        ]
+        items = [{"t_mono": stamp, "stream": stream, "record": record} for stamp, stream, record in merged(directory)]
         events_path = directory / "events.jsonl"
         if events_path.is_file():
             with events_path.open(encoding="utf-8") as stream:
                 for line in stream:
                     if line.strip():
                         event = json.loads(line)
-                        items.append(
-                            {"t_mono": float(event.get("t_mono", 0)), "stream": "event", "record": event}
-                        )
+                        items.append({"t_mono": float(event.get("t_mono", 0)), "stream": "event", "record": event})
         return sorted(items, key=lambda item: item["t_mono"])
 
     @staticmethod
@@ -181,9 +180,11 @@ rows.map(x=>{const ev=x.evidence?'<a href="/evidence/'+String(x.evidence).replac
                 if path.startswith("/design/"):
                     base = (REPO / "interfaces/shared/design").resolve()
                     target = (base / path[len("/design/") :]).resolve()
-                    return self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
+                    return (
+                        self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
+                    )
                 if path.startswith("/evidence/"):
-                    base = (Path("evidence").resolve())
+                    base = Path("evidence").resolve()
                     target = (base / path[len("/evidence/") :]).resolve()
                     return self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
                 parts = path.strip("/").split("/")

@@ -4,9 +4,9 @@ import json
 import os
 import subprocess
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from aether.evaluation.scenarios import check_frozen, load_scenarios
 
@@ -48,7 +48,7 @@ def run_scenario(
     if input_fn("Restore the start state and confirm with 'y': ").strip().lower() != "y":
         raise RuntimeError("scenario start was not confirmed")
 
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
     old_id = os.environ.get("AETHER_SOAK_RUN_ID")
     os.environ["AETHER_SOAK_RUN_ID"] = run_id
     try:

@@ -133,6 +133,10 @@ def main(argv=None) -> int:
         else:
             result = bench_tools.run_inference(a.backend, a.calls, a.concurrent, a.evidence_root)
         print(json.dumps(result, indent=2, default=str))
+        if a.bench_name == "inference" and any(
+            item.get("status") != "completed" for item in result["results"].values()
+        ):
+            return 1
     elif a.cmd == "scenario":
         from aether.scenario_runner import run_scenario, scenario_report
 

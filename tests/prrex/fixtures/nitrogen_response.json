@@ -1,6 +1,4 @@
 {
-  "_source": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
-  "_retrieved": "2026-10-28",
   "_verified_fields": {
     "status": "ok",
     "pred": {
@@ -9,5 +7,29 @@
       "buttons": []
     }
   },
-  "unverified": ["Exact status vocabulary and prediction array lengths depend on server/model revision and are not frozen by the public client contract."]
+  "_field_sources": {
+    "status": {
+      "url": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+      "retrieved": "2026-10-28"
+    },
+    "pred": {
+      "url": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+      "retrieved": "2026-10-28"
+    },
+    "pred.j_left": {
+      "url": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+      "retrieved": "2026-10-28"
+    },
+    "pred.j_right": {
+      "url": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+      "retrieved": "2026-10-28"
+    },
+    "pred.buttons": {
+      "url": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+      "retrieved": "2026-10-28"
+    }
+  },
+  "unverified": [
+    "Exact status vocabulary and prediction array lengths depend on server/model revision and are not frozen by the public client contract."
+  ]
 }

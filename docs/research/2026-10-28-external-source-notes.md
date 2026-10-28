@@ -95,5 +95,5 @@ Apply relevant principles by keeping player-facing remapping understandable, sup
 - First Firecrawl batch: six searches; reported costs 7, 7, 7, 7, 7, and 7 credits (42 credits total).
 - Second batch: rejected due to a per-minute request limit; no credit charge was returned for the rejected batch.
 - This note contains source leads and clearly marked gaps; it is not a completed verification of every research question in the task brief.
-- Current Firecrawl balance was 901 credits before research; exact balance should be rechecked before further calls.
+- Follow-up primary-source research is recorded in [the driver, NitroGen and VLM verification note](2026-10-28-driver-nitrogen-vlm-verification.md). After that batch, the authenticated balance was 829 credits. Across both batches, 68 credits were directly accounted as successful searches/research; the net balance delta from 901 to 829 was 72 credits, leaving 4 credits unexplained.
 - All source links above were retrieved or identified on 2026-10-28 unless marked as a candidate search link. Source-specific details not confirmed in the retrieved excerpts must remain unverified.

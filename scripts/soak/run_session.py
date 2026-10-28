@@ -82,6 +82,8 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
     classification = "completed"
     hang_age = None
     exit_code = None
+    heartbeat_samples = []
+    last_heartbeat = None
 
     with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open("w", encoding="utf-8") as stderr:
         child = subprocess.Popen(
@@ -102,6 +104,14 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
                     break
                 if heartbeat.exists():
                     age = time.time() - heartbeat.stat().st_mtime
+                    try:
+                        heartbeat_data = json.loads(heartbeat.read_text(encoding="utf-8"))
+                        sample = heartbeat_data.get("t_mono")
+                        if sample is not None and sample != last_heartbeat:
+                            heartbeat_samples.append(sample)
+                            last_heartbeat = sample
+                    except (OSError, json.JSONDecodeError):
+                        pass
                 else:
                     age = now - started
                 if age > heartbeat_timeout:
@@ -138,7 +148,14 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
         "faulthandler": str(stacks),
         "events": str(events_path),
         "recording_present": events_path.is_file(),
+        "raw_samples": {"heartbeat_t_mono": heartbeat_samples},
     }
+    try:
+        from aether.bench import hardware_info
+
+        result["hardware"] = hardware_info()
+    except ImportError:
+        result["hardware"] = {"status": "unavailable"}
     result_path = evidence_root / f"{run_id}.json"
     result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
     result["evidence_path"] = str(result_path)

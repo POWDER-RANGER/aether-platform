@@ -1,5 +1,4 @@
 import sys
-
 from aether.cli_ext import main
 
 

@@ -40,8 +40,13 @@ class FixedPlanSupervisor(NullSupervisor):
 
     def assess(self, rois, world_text, player_goal, history):
         return SupervisorOutput(
-            "synthetic-phase", "synthetic-objective", [Subgoal("hold synthetic objective")],
-            "fixed synthetic plan", 1.0, 0.0, self.name
+            "synthetic-phase",
+            "synthetic-objective",
+            [Subgoal("hold synthetic objective")],
+            "fixed synthetic plan",
+            1.0,
+            0.0,
+            self.name,
         )
 
 

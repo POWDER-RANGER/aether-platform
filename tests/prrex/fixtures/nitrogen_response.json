@@ -1,0 +1,13 @@
+{
+  "_source": "https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py",
+  "_retrieved": "2026-10-28",
+  "_verified_fields": {
+    "status": "ok",
+    "pred": {
+      "j_left": [],
+      "j_right": [],
+      "buttons": []
+    }
+  },
+  "unverified": ["Exact status vocabulary and prediction array lengths depend on server/model revision and are not frozen by the public client contract."]
+}

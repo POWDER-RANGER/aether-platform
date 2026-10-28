@@ -100,7 +100,7 @@ def test_start_failure_marks_failed_and_stops_started_components() -> None:
     with pytest.raises(RuntimeError, match="start failure"):
         rt.start()
     assert first.state is State.STOPPED
-    assert failing.state is State.STOPPED
+    assert failing.state is State.FAILED
     assert "stop:one" in order
 
 

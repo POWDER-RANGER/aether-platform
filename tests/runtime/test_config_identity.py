@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 from aether.runtime.config import ConfigError, PlatformSettings, load_platform_settings
-from aether.runtime.identity import RunIdentity, _git_dirty, _git_rev
+from aether.runtime.identity import RunIdentity, _git_dirty
 
 
 def write_settings(tmp_path, data):

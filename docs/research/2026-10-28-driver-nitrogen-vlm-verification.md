@@ -5,7 +5,8 @@
 
 ## 1. Virtual gamepad driver: ViGEmBus
 
-**Status: VERIFIED — retired and archived.**
+**Status:** VERIFIED
+Retired and archived.
 
 The official [Nefarius ViGEmBus repository](https://github.com/nefarius/ViGEmBus) states that the project is retired. GitHub reports the repository was archived on 2023-11-02; the latest repository commit shown in the retrieved page is 2023-09-08. The [Nefarius end-of-life statement](https://docs.nefarius.at/projects/ViGEm/End-of-Life/) says ViGEmBus and its client libraries will receive no further updates and are archived/retired. (Both retrieved 2026-10-28.)
 
@@ -21,7 +22,8 @@ The official [Nefarius ViGEmBus repository](https://github.com/nefarius/ViGEmBus
 
 ## 2. Physical controller hiding: HidHide
 
-**Status: PARTIALLY VERIFIED — current project documentation and a published release are available; owner-device behavior is untested.**
+**Status:** PARTIALLY VERIFIED
+Current project documentation and a published release are available; owner-device behavior is untested.
 
 The [HidHide project documentation](https://docs.nefarius.at/projects/HidHide/) describes it as an input-device firewall that blocks selected applications from accessing HID/XInput devices. It links to the official [HidHide releases](https://github.com/nefarius/HidHide/releases). The release page lists **HidHide Drivers v1.5.230.0**, released **2024-05-11**, as the latest release displayed at retrieval. The documentation carries an actively-maintained badge; the release listing itself is dated 2024. Do not infer a later release date than the page displayed. (Retrieved 2026-10-28.)
 

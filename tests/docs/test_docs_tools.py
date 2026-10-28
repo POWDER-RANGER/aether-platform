@@ -1,13 +1,21 @@
 from pathlib import Path
-from scripts.docs.check_docs import check
+
 from scripts.docs.build_index import build
+from scripts.docs.check_docs import check
+
 
 def test_checker_rules(tmp_path):
     (tmp_path / "docs").mkdir()
     (tmp_path / "src/x").mkdir(parents=True)
     (tmp_path / "src/x/a.py").write_text("pass")
     (tmp_path / "README.md").write_text("[guide](docs/guide.md)")
-    valid = "Status: VERIFIED\n| Path | Description |\n|---|---|\n| " + chr(96) + "src/x/a.py" + chr(96) + " | exists |"
+    valid = (
+        "Status: VERIFIED\n| Path | Description |\n|---|---|\n| "
+        + chr(96)
+        + "src/x/a.py"
+        + chr(96)
+        + " | exists |"
+    )
     (tmp_path / "docs/guide.md").write_text(valid)
     assert check(tmp_path) == []
 

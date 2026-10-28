@@ -51,6 +51,28 @@ def main(argv=None) -> int:
     s.add_argument("--settings", required=True)
     s.add_argument("--goal")
     s.add_argument("--scenario")
+    bench = sp.add_parser("bench")
+    bench_sub = bench.add_subparsers(dest="bench_name", required=True)
+    tick = bench_sub.add_parser("tick")
+    tick.add_argument("--seconds", type=float, default=600)
+    tick.add_argument("--evidence-root", default="evidence")
+    capture = bench_sub.add_parser("capture")
+    capture.add_argument("--seconds", type=float, default=60)
+    capture.add_argument("--process", required=True)
+    capture.add_argument("--backend", choices=["dxgi", "winrt"], default="dxgi")
+    capture.add_argument("--evidence-root", default="evidence")
+    nonblocking = bench_sub.add_parser("nonblocking")
+    nonblocking.add_argument("--seconds", type=float, default=10)
+    nonblocking.add_argument("--supervisor-sleep", type=float, default=1.0)
+    nonblocking.add_argument("--evidence-root", default="evidence")
+    inference = bench_sub.add_parser("inference")
+    inference.add_argument("--backend", choices=["ollama", "nitrogen"], default="ollama")
+    inference.add_argument("--calls", type=int, default=5)
+    inference.add_argument("--concurrent", action="store_true")
+    inference.add_argument("--evidence-root", default="evidence")
+    verify = sp.add_parser("verify-run")
+    verify.add_argument("run_dir")
+    verify.add_argument("--evidence-root", default="evidence")
     a = ap.parse_args(argv)
 
     if a.cmd == "serve":
@@ -80,6 +102,24 @@ def main(argv=None) -> int:
         return 1 if ch else 0
     elif a.cmd == "companion":
         return _companion(a)
+    elif a.cmd == "bench":
+        from aether import bench as bench_tools
+
+        if a.bench_name == "tick":
+            result = bench_tools.run_tick(a.seconds, a.evidence_root)
+        elif a.bench_name == "capture":
+            result = bench_tools.run_capture(a.seconds, a.process, a.backend, a.evidence_root)
+        elif a.bench_name == "nonblocking":
+            result = bench_tools.run_nonblocking(a.seconds, a.supervisor_sleep, a.evidence_root)
+        else:
+            result = bench_tools.run_inference(a.backend, a.calls, a.concurrent, a.evidence_root)
+        print(json.dumps(result, indent=2, default=str))
+    elif a.cmd == "verify-run":
+        from aether.bench import verify_run
+
+        result = verify_run(a.run_dir, a.evidence_root)
+        print(json.dumps(result, indent=2, default=str))
+        return 0 if result["status"] == "VERIFIED" else 1
     return 0
 
 

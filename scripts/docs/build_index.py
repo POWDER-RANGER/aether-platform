@@ -37,10 +37,7 @@ def build(root: Path) -> str:
         "| File | Run ID | Date | Criterion / scenario | Evidence label |",
         "|---|---|---|---|---|",
     ]
-    lines.extend(
-        "| " + " | ".join(value.replace("|", "\\|") for value in row) + " |"
-        for row in rows
-    )
+    lines.extend("| " + " | ".join(value.replace("|", "\\|") for value in row) + " |" for row in rows)
     if not rows:
         lines.append("| *(no evidence files found)* | | | | |")
     return "\n".join(lines) + "\n"

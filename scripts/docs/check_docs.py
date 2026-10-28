@@ -46,20 +46,15 @@ def check(root: Path) -> list[str]:
             cells = [cell.strip().lower() for cell in block[0].strip("|").split("|")]
             if "requested file" in block[0].lower():
                 continue
-            status_columns = [
-                n for n, cell in enumerate(cells) if cell in {"evidence status", "evidence label"}
-            ]
+            status_columns = [n for n, cell in enumerate(cells) if cell in {"evidence status", "evidence label"}]
             if doc.relative_to(root).as_posix() != "docs/decisions/DECISIONS.md":
                 for row in block[2:]:
                     values = [cell.strip().strip("*_").upper() for cell in row.strip("|").split("|")]
                     for column in status_columns:
                         if column < len(values) and values[column] and values[column] not in LABELS:
-                            errors.append(
-                                f"{doc.relative_to(root)}: invalid table status label {values[column]!r}"
-                            )
+                            errors.append(f"{doc.relative_to(root)}: invalid table status label {values[column]!r}")
             path_columns = [
-                n for n, cell in enumerate(cells)
-                if cell in {"path", "file path", "repository path", "evidence path"}
+                n for n, cell in enumerate(cells) if cell in {"path", "file path", "repository path", "evidence path"}
             ]
             for row in block[2:]:
                 values = [cell.strip() for cell in row.strip("|").split("|")]
@@ -70,9 +65,7 @@ def check(root: Path) -> list[str]:
                         if any(token in cited for token in ("{", "}", "*", "<", ">", "...")):
                             continue
                         if not (root / cited).exists():
-                            errors.append(
-                                f"{doc.relative_to(root)}: cited table path does not exist: {cited}"
-                            )
+                            errors.append(f"{doc.relative_to(root)}: cited table path does not exist: {cited}")
     for path in root.rglob("*"):
         if not path.is_file():
             continue
@@ -81,7 +74,13 @@ def check(root: Path) -> list[str]:
             continue
         relative = relative_path.as_posix()
         if relative.startswith(("configuration/", "docs/protocols/")) or path.suffix.lower() not in {
-            ".md", ".yaml", ".yml", ".json", ".py", ".toml", ".txt"
+            ".md",
+            ".yaml",
+            ".yml",
+            ".json",
+            ".py",
+            ".toml",
+            ".txt",
         }:
             continue
         try:

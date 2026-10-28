@@ -7,13 +7,7 @@ def test_checker_rules(tmp_path):
     (tmp_path / "src/x").mkdir(parents=True)
     (tmp_path / "src/x/a.py").write_text("pass")
     (tmp_path / "README.md").write_text("[guide](docs/guide.md)")
-    valid = (
-        "Status: VERIFIED\n| Path | Description |\n|---|---|\n| "
-        + chr(96)
-        + "src/x/a.py"
-        + chr(96)
-        + " | exists |"
-    )
+    valid = "Status: VERIFIED\n| Path | Description |\n|---|---|\n| " + chr(96) + "src/x/a.py" + chr(96) + " | exists |"
     (tmp_path / "docs/guide.md").write_text(valid)
     assert check(tmp_path) == []
 
@@ -34,10 +28,7 @@ def test_checker_rules(tmp_path):
 def test_index_read_only(tmp_path):
     path = tmp_path / "evidence/E-01/a.json"
     path.parent.mkdir(parents=True)
-    path.write_text(
-        '{"run_id":"r1","timestamp_utc":"2026-10-28T00:00:00Z",'
-        '"criterion":"E-01","status":"VERIFIED"}'
-    )
+    path.write_text('{"run_id":"r1","timestamp_utc":"2026-10-28T00:00:00Z","criterion":"E-01","status":"VERIFIED"}')
     before = path.read_bytes()
     result = build(tmp_path)
     assert "r1" in result and "VERIFIED" in result

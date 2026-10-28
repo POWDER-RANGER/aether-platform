@@ -37,7 +37,7 @@ The active repository references `src/prrex/backends/nitrogen.py`; its verificat
 
 The brief supplies the governing licensing constraint: NitroGen is research-only; its weights and code must not be copied into this repository. Link-only reference is appropriate:
 - [NVIDIA NitroGen research](https://research.nvidia.com/labs/gamegan/nitrogen/)
-- [NVIDIA NitroGen GitHub](https://github.com/NVIDIA/NitroGen)
+- [NVIDIA NitroGen GitHub](https://github.com/MineDojo/NitroGen)
 
 **Do not infer 8 GB VRAM fit from parameter count or a model card.** Co-residency depends on weight format, precision/quantization, context, image preprocessing, runtime allocations, GPU display usage, and the selected supervisor. No RTX 4060 memory/latency test was run in this task. Chunk length 16 is a design parameter in the owner brief and draft, not proof of 16 successful actions per inference or sustained 120 Hz control.
 

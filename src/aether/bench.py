@@ -317,12 +317,16 @@ def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: 
                 from prrex.backends.ollama_vlm import OllamaSupervisor
 
                 instance = OllamaSupervisor()
-                call = lambda: instance.assess({"synthetic": image}, "synthetic benchmark image", None, [])
+
+                def call():
+                    return instance.assess({"synthetic": image}, "synthetic benchmark image", None, [])
             else:
                 from prrex.backends.nitrogen_reflex import NitrogenReflex
 
                 instance = NitrogenReflex()
-                call = lambda: instance.act(image, None, 16)
+
+                def call():
+                    return instance.act(image, None, 16)
             call()
             cold_ms = (time.perf_counter() - started) * 1000
             warm = []
@@ -341,6 +345,8 @@ def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: 
             close = getattr(instance, "close", None)
             if callable(close):
                 close()
+            elif hasattr(instance, "sock"):
+                instance.sock.close(linger=0)
         except Exception as exc:
             results[name] = {
                 "status": "failed",
@@ -411,10 +417,13 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
             if not monotonic:
                 failures.append(f"{path.name} timestamps are not monotonic")
             gaps = [right - left for left, right in zip(times, times[1:])]
+            largest_gap = max(gaps, default=0.0)
+            if largest_gap > 1.0:
+                failures.append(f"{path.name} largest gap exceeds 1 second")
             stream_results[path.stem] = {
                 "count": len(times),
                 "monotonic": monotonic,
-                "largest_gap_s": max(gaps, default=0.0),
+                "largest_gap_s": largest_gap,
             }
     else:
         failures.append("streams directory missing")

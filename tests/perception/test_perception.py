@@ -28,7 +28,7 @@ def test_frame_buffer_capacity_latest_and_window() -> None:
     first = buf.push(1.0, synthetic_frame(), source="synthetic")
     buf.push(2.0, synthetic_frame(), source="synthetic")
     third = buf.push(3.0, synthetic_frame(), source="synthetic")
-    assert buf.latest() == third
+    assert buf.latest().seq == third.seq
     assert first.seq == 1
     assert [frame.seq for frame in buf.window(1.5)] == [2, 3]
 

@@ -99,7 +99,7 @@ def run_scenario(
         hardware = {"status": "unavailable"}
     record = {
         "run_id": run_id,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "git_rev": git_rev,
         "hardware": hardware,
         "scenario": scenario_id,

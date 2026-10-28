@@ -127,6 +127,7 @@ def _companion(a) -> int:
     """End-to-end wiring. REFINE: key loading (control.settings), Governor process start, player goal UI, clean shutdown."""
     import faulthandler
     import os
+    import threading
     import time
     from pathlib import Path
 
@@ -163,6 +164,20 @@ def _companion(a) -> int:
         fault_path.parent.mkdir(parents=True, exist_ok=True)
         fault_handle = fault_path.open("a", encoding="utf-8")
         faulthandler.enable(file=fault_handle, all_threads=True)
+    dump_monitor_stop = threading.Event()
+    dump_monitor = None
+    if dump_request and fault_handle:
+        def monitor_dump_request():
+            while not dump_monitor_stop.is_set():
+                if dump_request.exists():
+                    faulthandler.dump_traceback_later(0.1, repeat=False, file=fault_handle)
+                    time.sleep(0.2)
+                    faulthandler.cancel_dump_traceback_later()
+                    dump_request.unlink(missing_ok=True)
+                dump_monitor_stop.wait(0.1)
+
+        dump_monitor = threading.Thread(target=monitor_dump_request, name="aether-soak-dump", daemon=True)
+        dump_monitor.start()
     buf = FrameBuffer(int(st.capture.target_fps * st.capture.buffer_seconds))
     perc = PerceptionPipeline(bus, st.perception.rois, st.perception.readers)
     planner = Planner()
@@ -196,11 +211,6 @@ def _companion(a) -> int:
                 heartbeat_path.write_text(
                     json.dumps({"t_wall": time.time(), "t_mono": time.monotonic()}), encoding="utf-8"
                 )
-            if dump_request and dump_request.exists() and fault_handle:
-                faulthandler.dump_traceback_later(0.1, repeat=False, file=fault_handle)
-                time.sleep(0.2)
-                faulthandler.cancel_dump_traceback_later()
-                dump_request.unlink(missing_ok=True)
             time.sleep(1)
     except KeyboardInterrupt:
         pass
@@ -208,6 +218,9 @@ def _companion(a) -> int:
         rt.stop()
         rec.stop()
         client.close()
+        dump_monitor_stop.set()
+        if dump_monitor:
+            dump_monitor.join(timeout=1)
         if fault_handle:
             faulthandler.cancel_dump_traceback_later()
             fault_handle.close()

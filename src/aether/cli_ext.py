@@ -51,6 +51,19 @@ def main(argv=None) -> int:
     s.add_argument("--settings", required=True)
     s.add_argument("--goal")
     s.add_argument("--scenario")
+    s.add_argument("--duration", type=float)
+    s.add_argument("--mode", choices=["research", "companion"])
+    s.add_argument("--environment")
+    scenario = sp.add_parser("scenario")
+    scenario_sub = scenario.add_subparsers(dest="scenario_action", required=True)
+    scenario_run = scenario_sub.add_parser("run")
+    scenario_run.add_argument("scenario_id")
+    scenario_run.add_argument("--mode", choices=["research", "companion"], required=True)
+    scenario_run.add_argument("--settings", required=True)
+    scenario_run.add_argument("--screening", action="store_true")
+    scenario_report = scenario_sub.add_parser("report")
+    scenario_report.add_argument("scenario_id")
+    scenario_report.add_argument("--evidence-root", default="evidence/scenarios")
     bench = sp.add_parser("bench")
     bench_sub = bench.add_subparsers(dest="bench_name", required=True)
     tick = bench_sub.add_parser("tick")
@@ -120,6 +133,14 @@ def main(argv=None) -> int:
         else:
             result = bench_tools.run_inference(a.backend, a.calls, a.concurrent, a.evidence_root)
         print(json.dumps(result, indent=2, default=str))
+    elif a.cmd == "scenario":
+        from aether.scenario_runner import run_scenario, scenario_report
+
+        if a.scenario_action == "run":
+            result = run_scenario(a.scenario_id, a.mode, a.settings, a.screening)
+        else:
+            result = scenario_report(a.scenario_id, a.evidence_root)
+        print(json.dumps(result, indent=2, default=str))
     elif a.cmd == "verify-run":
         from aether.bench import verify_run
 
@@ -168,6 +189,10 @@ def _companion(a) -> int:
     from prrex.supervisor.planner import Planner
 
     st = load_platform_settings(a.settings)
+    if getattr(a, "mode", None):
+        st.mode = a.mode
+    if getattr(a, "environment", None):
+        st.environment = a.environment
     bus = EventBus()
     reflex = make_reflex(st.backends.reflex, **st.backends.reflex_options)
     sup = make_supervisor(st.backends.supervisor, **st.backends.supervisor_options)
@@ -231,7 +256,8 @@ def _companion(a) -> int:
         rt.start()
         import time
 
-        while True:
+        started_at = time.monotonic()
+        while a.duration is None or time.monotonic() - started_at < a.duration:
             if heartbeat_path:
                 heartbeat_path.parent.mkdir(parents=True, exist_ok=True)
                 heartbeat_path.write_text(

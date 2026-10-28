@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -84,9 +85,23 @@ def run_scenario(
     outcome = "screening" if screening else reported_outcome
     notes = input_fn("Notes: ")
 
+    try:
+        git_rev = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=2, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        git_rev = "unknown"
+    try:
+        from aether.bench import hardware_info
+
+        hardware = hardware_info()
+    except ImportError:
+        hardware = {"status": "unavailable"}
     record = {
         "run_id": run_id,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git_rev": git_rev,
+        "hardware": hardware,
         "scenario": scenario_id,
         "mode": mode,
         "environment": scenario.environment,
@@ -95,6 +110,7 @@ def run_scenario(
         "outcome": outcome,
         "reported_outcome": reported_outcome,
         "metrics": metrics,
+        "raw_samples": {"owner_entered_metrics": metrics},
         "notes": notes,
         "companion_exit_code": exit_code,
         "time_limit_s": scenario.time_limit_s,

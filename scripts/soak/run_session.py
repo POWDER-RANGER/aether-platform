@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,7 +56,7 @@ def _has_stall_event(events_path: Path) -> bool:
 
 
 def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_root: Path, run_root: Path) -> dict:
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
     work = evidence_root / run_id
     work.mkdir(parents=True, exist_ok=True)
     heartbeat = work / "heartbeat.json"

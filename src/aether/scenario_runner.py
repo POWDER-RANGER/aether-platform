@@ -39,7 +39,9 @@ def run_scenario(
         raise ValueError(f"{mode} mode is not allowed for {scenario_id}")
     if scenario.kind == "formal" and not screening:
         if not Path(lock).is_file():
-            raise RuntimeError("formal scenario blocked: no threshold/scenario lock exists; use --screening for a non-formal run")
+            raise RuntimeError(
+                "formal scenario blocked: no threshold/scenario lock exists; use --screening for a non-formal run"
+            )
         changed = check_frozen(root, lock)
         if changed:
             raise RuntimeError(f"formal scenario blocked: frozen scenario files changed: {changed}")
@@ -79,7 +81,9 @@ def run_scenario(
     metrics = {}
     for metric in scenario.metrics:
         metrics[metric] = input_fn(f"{metric}: ")
-    reported_outcome = input_fn("Outcome (VERIFIED | PARTIALLY VERIFIED | UNVERIFIED | FAILED | BLOCKED | NOT IMPLEMENTED): ").strip()
+    reported_outcome = input_fn(
+        "Outcome (VERIFIED | PARTIALLY VERIFIED | UNVERIFIED | FAILED | BLOCKED | NOT IMPLEMENTED): "
+    ).strip()
     if reported_outcome not in OUTCOMES:
         raise ValueError(f"invalid outcome label: {reported_outcome}")
     outcome = "screening" if screening else reported_outcome

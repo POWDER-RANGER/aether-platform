@@ -30,7 +30,9 @@ def make_synthetic_run(root):
     run = root / "synthetic-run"
     (run / "streams").mkdir(parents=True)
     (run / "frames").mkdir()
-    (run / "manifest.json").write_text(json.dumps({"identity": {"run_id": "synthetic-run"}, "streams": ["intended"]}), encoding="utf-8")
+    (run / "manifest.json").write_text(
+        json.dumps({"identity": {"run_id": "synthetic-run"}, "streams": ["intended"]}), encoding="utf-8"
+    )
     (run / "streams" / "intended.jsonl").write_text(
         '{"t_mono":1.0,"kind":"synthetic"}\n{"t_mono":2.0,"kind":"synthetic"}\n', encoding="utf-8"
     )
@@ -55,9 +57,7 @@ def test_verify_run_validates_manifest_streams_frames_and_events(tmp_path) -> No
 
 def test_verify_run_fails_nonmonotonic_stream_and_bad_events(tmp_path) -> None:
     run = make_synthetic_run(tmp_path)
-    (run / "streams" / "intended.jsonl").write_text(
-        '{"t_mono":2.0}\n{"t_mono":1.0}\n', encoding="utf-8"
-    )
+    (run / "streams" / "intended.jsonl").write_text('{"t_mono":2.0}\n{"t_mono":1.0}\n', encoding="utf-8")
     (run / "events.jsonl").write_text("{bad json\n", encoding="utf-8")
     result = verify_run(run, tmp_path / "evidence")
     assert result["status"] == "FAILED"
@@ -71,9 +71,7 @@ def test_verify_run_reports_gaps_over_one_second_and_missing_manifest_stream(tmp
         json.dumps({"identity": {"run_id": "synthetic-run"}, "streams": ["intended", "observed"]}),
         encoding="utf-8",
     )
-    (run / "streams" / "intended.jsonl").write_text(
-        '{"t_mono":1.0}\n{"t_mono":2.5}\n', encoding="utf-8"
-    )
+    (run / "streams" / "intended.jsonl").write_text('{"t_mono":1.0}\n{"t_mono":2.5}\n', encoding="utf-8")
     result = verify_run(run, tmp_path / "evidence")
     assert result["status"] == "FAILED"
     assert result["streams"]["intended"]["largest_gap_s"] == 1.5

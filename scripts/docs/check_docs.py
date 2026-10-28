@@ -2,7 +2,9 @@ from __future__ import annotations
 import re,sys
 from pathlib import Path
 LABELS={'VERIFIED','PARTIALLY VERIFIED','UNVERIFIED','FAILED','BLOCKED','NOT IMPLEMENTED'}
-STATUS=re.compile(r'(?im)^\\s*status\\s*[:|]\\s*([^|\\n]+)'); LINK=re.compile(r'!?\\[[^]]*\\]\\(([^)]+)\\)'); PATH=re.compile(r'`((?:src|tests|scripts|docs|configuration|interfaces|evidence)/[^`]+)`')
+STATUS=re.compile(r'(?im)^\s*status\s*[:|]\s*([^|\n]+)')
+LINK=re.compile(r'!?\[[^]]*\]\(([^)]+)\)')
+PATH=re.compile(r'\x60((?:src|tests|scripts|docs|configuration|interfaces|evidence)/[^\x60]+)\x60')
 def check(root:Path):
  e=[]; docs=[root/'README.md',*((root/'docs').rglob('*.md') if (root/'docs').exists() else [])]
  for p in docs:
@@ -26,5 +28,5 @@ def check(root:Path):
    if 'PROPOSED' in line.upper() and 'THRESHOLD' in line.upper() and 'NOT FROZEN' not in line.upper():e.append(f'{rel}:{n}: proposed threshold missing NOT FROZEN')
  return e
 def main():
- e=check(Path(sys.argv[1] if len(sys.argv)>1 else '.').resolve());print('\\n'.join(e) if e else 'Documentation checks passed');return int(bool(e))
+ e=check(Path(sys.argv[1] if len(sys.argv)>1 else '.').resolve());print('\n'.join(e) if e else 'Documentation checks passed');return int(bool(e))
 if __name__=='__main__':raise SystemExit(main())

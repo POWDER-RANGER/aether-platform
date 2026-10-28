@@ -42,12 +42,7 @@ The [ViGEm end-of-life page](https://docs.nefarius.at/projects/ViGEm/End-of-Life
 
 ### Model and frame/action shape
 
-The model card states:
-- Approximately (4.93 \times 10^8) parameters (about 493 million; repository README rounds this to 500M).
-- Input: 256×256 RGB image.
-- Output: a 21×16 action tensor, described as two 2D continuous joystick vectors plus 17 binary buttons across a 16-step action chunk.
-
-The upstream `scripts/play.py` preprocesses the captured RGB image to 256×256 before inference. The upstream `nitrogen/inference_client.py` documents `ModelClient.predict(image)` as accepting a NumPy `(H, W, 3)` RGB array and returning a dictionary containing `j_left`, `j_right`, and `buttons`; the play script asserts equal action sequence lengths and checks that each button vector length equals the token set. [Model card](https://huggingface.co/nvidia/NitroGen), [play.py](https://github.com/MineDojo/NitroGen/blob/main/scripts/play.py), [inference_client.py](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_client.py) (retrieved 2026-10-28).
+The model card reports approximately 4.93×10^8 parameters (about 493 million; repository README rounds this to 500M), a 256×256 RGB input and a 16-step action output. The upstream play/client interface exposes three arrays: `j_left` and `j_right` are per-step 2D joystick vectors, while `buttons` is a per-step button-token vector. The official `nitrogen/shared.py` defines 21 `BUTTON_ACTION_TOKENS`; the play script asserts that each returned button vector has exactly this token-set width and that all three action sequences have equal length. Do not describe the 21-token button vector as 17 buttons. The model card's 16-step output description is separate from the transport protocol: the play loop derives sequence length as `len(buttons)`, and `action_downsample_ratio` is 1 for this model. [Model card](https://huggingface.co/nvidia/NitroGen), [play.py](https://github.com/MineDojo/NitroGen/blob/main/scripts/play.py), [inference_client.py](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_client.py), [shared.py](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/shared.py), [inference_session.py](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py) (retrieved 2026-10-28).
 
 ### Exact server request/reply
 

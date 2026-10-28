@@ -23,9 +23,7 @@ def make_run(root):
         json.dumps({"identity": {"run_id": "run-1", "mode": "research"}, "streams": ["intended"]}),
         encoding="utf-8",
     )
-    (run / "streams" / "intended.jsonl").write_text(
-        '{"t_mono":1.0,"action":"synthetic"}\n', encoding="utf-8"
-    )
+    (run / "streams" / "intended.jsonl").write_text('{"t_mono":1.0,"action":"synthetic"}\n', encoding="utf-8")
     (run / "frames.jsonl").write_text('{"seq":1,"t_mono":1.0}\n', encoding="utf-8")
     (run / "events.jsonl").write_text('{"t_mono":1.0,"topic":"synthetic.event"}\n', encoding="utf-8")
     # Synthetic image fixture; not captured gameplay.

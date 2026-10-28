@@ -2,6 +2,8 @@
 
 **PROPOSED — requires owner approval (see OWNER-DECISIONS.md).** Documentation only. No implementation is authorized by this proposal.
 
+**Overlap note (2026-10-28):** PR #4 (`runtime/slice-1`) already implements a read-only Governor observer: `src/aether/runtime/governor_bridge.py` attaches to the Governor's `IntentLog` and publishes `governor.*` events on the typed `aether.runtime.events.EventBus`, with an output-equivalence test (`tests/runtime/test_governor_bridge.py`); see `docs/architecture/RUNTIME.md`. Review this proposal as a comparison against that implementation, not as a separate design to build.
+
 ## Interface proposal
 
 A read-only observer receives an immutable record after the Governor has completed its decision and output path. One event per decision: accepted, rejected, neutralised, player override, or E-stop. Suggested fields:

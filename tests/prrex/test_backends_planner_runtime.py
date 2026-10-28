@@ -167,10 +167,21 @@ def test_ollama_supervisor_parses_json_and_degrades_on_malformed(monkeypatch) ->
         def read(self):
             return json.dumps({"message": {"content": self.body}}).encode()
 
-    monkeypatch.setattr(ollama_vlm.urllib.request, "urlopen", lambda *a, **k: Response(
-        json.dumps({"phase": "gameplay", "objective": "synthetic", "subgoals": [{"text": "observe"}],
-                    "explanation": "parsed", "confidence": 0.8})
-    ))
+    monkeypatch.setattr(
+        ollama_vlm.urllib.request,
+        "urlopen",
+        lambda *a, **k: Response(
+            json.dumps(
+                {
+                    "phase": "gameplay",
+                    "objective": "synthetic",
+                    "subgoals": [{"text": "observe"}],
+                    "explanation": "parsed",
+                    "confidence": 0.8,
+                }
+            )
+        ),
+    )
     good = ollama_vlm.OllamaSupervisor().assess({}, "", None, [])
     assert good.confidence == 0.8
     assert good.subgoals[0].text == "observe"

@@ -4,6 +4,7 @@
 Reader contract: read(crop, t_mono, frame_seq) -> Fact | None. Readers must be cheap; anything
 slow belongs to the supervisor pathway, not here.
 """
+
 from __future__ import annotations
 
 from typing import Protocol
@@ -27,7 +28,7 @@ class BarReader:
 
     def read(self, crop, t_mono, frame_seq=None):
         h = crop.shape[0]
-        band = crop[max(0, h // 2 - 1): h // 2 + 2].astype(np.int16)
+        band = crop[max(0, h // 2 - 1) : h // 2 + 2].astype(np.int16)
         match = (np.abs(band - self.rgb).max(axis=2) <= self.tol).any(axis=0)
         if match.sum() < self.min_px:
             return Fact(0.0, 0.3, t_mono, f"bar:{self.name}", frame_seq=frame_seq)

@@ -4,6 +4,7 @@
 Observed facts (reader output) and model interpretations (VLM / supervisor) stay distinguishable via
 `kind`: "observed" | "interpreted".
 """
+
 from __future__ import annotations
 
 import time

@@ -4,6 +4,7 @@
 Registry maps a settings name to a factory. NullReflex/NullSupervisor output neutral / no plan and report
 themselves as such; they exist so the loop runs end-to-end without a model and are never evidence of capability.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -52,7 +53,9 @@ class ReflexBackend(Protocol):
 class SupervisorBackend(Protocol):
     name: str
 
-    def assess(self, rois: dict[str, np.ndarray], world_text: str, player_goal: str | None, history: list[str]) -> SupervisorOutput: ...
+    def assess(
+        self, rois: dict[str, np.ndarray], world_text: str, player_goal: str | None, history: list[str]
+    ) -> SupervisorOutput: ...
 
 
 class NullReflex:

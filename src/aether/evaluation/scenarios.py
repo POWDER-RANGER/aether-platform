@@ -1,6 +1,7 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Scenario definitions (SCN-xx formal, DG-xx diagnostic) loaded from configuration/scenarios/*.yaml,
 and threshold freezing: a frozen file's sha256 is written to a lock; later edits are detected (§10)."""
+
 from __future__ import annotations
 
 import hashlib
@@ -42,8 +43,14 @@ def freeze(root: str | Path = "configuration/scenarios", lock: str | Path = "evi
     return digests
 
 
-def check_frozen(root: str | Path = "configuration/scenarios", lock: str | Path = "evidence/thresholds.lock.json") -> list[str]:
+def check_frozen(
+    root: str | Path = "configuration/scenarios", lock: str | Path = "evidence/thresholds.lock.json"
+) -> list[str]:
     """Returns names of scenario files changed since freezing. Non-empty => formal results invalid."""
     frozen = json.loads(Path(lock).read_text(encoding="utf-8"))
-    changed = [n for n, h in frozen.items() if not (Path(root) / n).exists() or hashlib.sha256((Path(root) / n).read_bytes()).hexdigest() != h]
+    changed = [
+        n
+        for n, h in frozen.items()
+        if not (Path(root) / n).exists() or hashlib.sha256((Path(root) / n).read_bytes()).hexdigest() != h
+    ]
     return changed

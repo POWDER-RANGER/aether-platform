@@ -10,6 +10,7 @@ GET /api/scorecard    -> E-01..E-10 latest results
 GET /api/events       -> last N bus events (ring buffer)
 No endpoint can command the controller (Governor is sole authority; STOP stays the file/hotkey path).
 """
+
 from __future__ import annotations
 
 import json
@@ -29,7 +30,9 @@ REPO = Path(__file__).resolve().parents[3]
 
 
 class CommandCenter:
-    def __init__(self, bus: EventBus, runtime: Runtime | None, runs_root: str | Path, ledger: Ledger, host="127.0.0.1", port=8765):
+    def __init__(
+        self, bus: EventBus, runtime: Runtime | None, runs_root: str | Path, ledger: Ledger, host="127.0.0.1", port=8765
+    ):
         self.bus, self.runtime, self.runs_root, self.ledger = bus, runtime, Path(runs_root), ledger
         self.recent: deque = deque(maxlen=500)
         self.sub = bus.subscribe("*")
@@ -74,7 +77,7 @@ class CommandCenter:
                     return self._file(REPO / "interfaces/command-center/index.html")
                 if path.startswith("/design/"):
                     base = (REPO / "interfaces/shared/design").resolve()
-                    p = (base / path[len("/design/"):]).resolve()
+                    p = (base / path[len("/design/") :]).resolve()
                     return self._file(p) if str(p).startswith(str(base)) else self._json({"error": "forbidden"}, 403)
                 if path == "/api/health":
                     return self._json(cc.runtime.health() if cc.runtime else {})

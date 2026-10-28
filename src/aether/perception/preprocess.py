@@ -1,5 +1,6 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Global 256x256 reflex view and high-resolution ROI crops."""
+
 from __future__ import annotations
 
 import numpy as np

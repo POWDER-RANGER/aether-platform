@@ -1,5 +1,6 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Perception pipeline: frame -> ROI readers -> WorldState, publishing perception events."""
+
 from __future__ import annotations
 
 from aether.runtime.events import EventBus
@@ -25,6 +26,12 @@ class PerceptionPipeline:
             fact = reader.read(roi_crop(frame.image, roi), frame.t_mono, frame.seq)
             if fact is not None:
                 self.state.set(name, fact)
-                self.bus.publish("perception.fact", key=name, value=fact.value, confidence=fact.confidence,
-                                 source=fact.source, frame_seq=frame.seq)
+                self.bus.publish(
+                    "perception.fact",
+                    key=name,
+                    value=fact.value,
+                    confidence=fact.confidence,
+                    source=fact.source,
+                    frame_seq=frame.seq,
+                )
         return self.state

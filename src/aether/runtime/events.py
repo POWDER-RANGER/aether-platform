@@ -4,6 +4,7 @@
 Events are plain dicts so they serialise to JSONL unchanged. Publishing never blocks on a slow
 subscriber: each subscriber gets its own bounded queue; overflow drops the oldest and counts it.
 """
+
 from __future__ import annotations
 
 import itertools

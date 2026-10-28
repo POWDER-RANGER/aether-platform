@@ -1,6 +1,7 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Hierarchical plan with receding horizon. The supervisor proposes subgoals; the planner tracks the active one,
 evaluates success checks against WorldState, times out, and asks for a replan. Never blocks the reflex loop."""
+
 from __future__ import annotations
 
 import time

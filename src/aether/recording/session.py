@@ -7,6 +7,7 @@ runs/<run_id>/
   streams/<name>.jsonl   intended | commanded | delivered | observed | player_input (kept distinct, §5)
   frames/<seq>.jpg       sampled frames; frames.jsonl maps seq -> t_mono, size
 """
+
 from __future__ import annotations
 
 import json
@@ -23,7 +24,9 @@ STREAMS = ("intended", "commanded", "delivered", "observed", "player_input")
 
 
 class RecordingSession:
-    def __init__(self, root: str | Path, identity: RunIdentity, bus: EventBus, frame_every_n: int = 6, jpeg_quality: int = 85):
+    def __init__(
+        self, root: str | Path, identity: RunIdentity, bus: EventBus, frame_every_n: int = 6, jpeg_quality: int = 85
+    ):
         self.identity = identity
         self.dir = Path(root) / identity.run_id
         self.bus = bus
@@ -64,7 +67,9 @@ class RecordingSession:
         seq = self._frame_n
         Image.fromarray(img).save(self.dir / "frames" / f"{seq:08d}.jpg", quality=self.jpeg_quality)
         with self._lock:
-            self._frames_index.write(json.dumps({"seq": seq, "t_mono": t_mono, "h": img.shape[0], "w": img.shape[1]}) + "\n")
+            self._frames_index.write(
+                json.dumps({"seq": seq, "t_mono": t_mono, "h": img.shape[0], "w": img.shape[1]}) + "\n"
+            )
 
     def stop(self) -> None:
         self.stopped = time.time()
@@ -78,6 +83,12 @@ class RecordingSession:
         self._write_manifest()
 
     def _write_manifest(self) -> None:
-        m = {"identity": self.identity.to_dict(), "started": self.started, "stopped": self.stopped,
-             "streams": list(STREAMS), "frame_every_n": self.frame_every_n, "format_version": 1}
+        m = {
+            "identity": self.identity.to_dict(),
+            "started": self.started,
+            "stopped": self.stopped,
+            "streams": list(STREAMS),
+            "frame_every_n": self.frame_every_n,
+            "format_version": 1,
+        }
         (self.dir / "manifest.json").write_text(json.dumps(m, indent=2), encoding="utf-8")

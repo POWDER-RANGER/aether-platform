@@ -12,6 +12,7 @@
   companion  run capture -> perception -> PR-REX loops -> Governor (REFINE: wire key + governor serve)
 Merge into aether/cli.py once refined.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -28,14 +29,28 @@ from aether.runtime.events import EventBus
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="aether.cli_ext")
     sp = ap.add_subparsers(dest="cmd", required=True)
-    s = sp.add_parser("serve"); s.add_argument("--settings"); s.add_argument("--runs", default="runs")
-    s = sp.add_parser("runs"); s.add_argument("--root", default="runs")
-    s = sp.add_parser("replay"); s.add_argument("run_dir")
+    s = sp.add_parser("serve")
+    s.add_argument("--settings")
+    s.add_argument("--runs", default="runs")
+    s = sp.add_parser("runs")
+    s.add_argument("--root", default="runs")
+    s = sp.add_parser("replay")
+    s.add_argument("run_dir")
     sp.add_parser("scorecard")
-    s = sp.add_parser("record"); s.add_argument("criterion", choices=[c.id for c in SCORECARD]); s.add_argument("status")
-    s.add_argument("--runs", nargs="*", default=[]); s.add_argument("--value", default=""); s.add_argument("--evidence", required=True); s.add_argument("--note", default="")
-    sp.add_parser("scenarios"); sp.add_parser("freeze"); sp.add_parser("check")
-    s = sp.add_parser("companion"); s.add_argument("--settings", required=True); s.add_argument("--goal"); s.add_argument("--scenario")
+    s = sp.add_parser("record")
+    s.add_argument("criterion", choices=[c.id for c in SCORECARD])
+    s.add_argument("status")
+    s.add_argument("--runs", nargs="*", default=[])
+    s.add_argument("--value", default="")
+    s.add_argument("--evidence", required=True)
+    s.add_argument("--note", default="")
+    sp.add_parser("scenarios")
+    sp.add_parser("freeze")
+    sp.add_parser("check")
+    s = sp.add_parser("companion")
+    s.add_argument("--settings", required=True)
+    s.add_argument("--goal")
+    s.add_argument("--scenario")
     a = ap.parse_args(argv)
 
     if a.cmd == "serve":
@@ -86,8 +101,14 @@ def _companion(a) -> int:
     bus = EventBus()
     reflex = make_reflex(st.backends.reflex, **st.backends.reflex_options)
     sup = make_supervisor(st.backends.supervisor, **st.backends.supervisor_options)
-    ident = RunIdentity.create(Path.cwd(), mode=st.mode, environment=st.environment, scenario=a.scenario,
-                               backends={"reflex": reflex.name, "supervisor": sup.name}, settings_sha256=st.sha256())
+    ident = RunIdentity.create(
+        Path.cwd(),
+        mode=st.mode,
+        environment=st.environment,
+        scenario=a.scenario,
+        backends={"reflex": reflex.name, "supervisor": sup.name},
+        settings_sha256=st.sha256(),
+    )
     rec = RecordingSession(st.recording.root, ident, bus, st.recording.frame_every_n, st.recording.jpeg_quality)
     buf = FrameBuffer(int(st.capture.target_fps * st.capture.buffer_seconds))
     perc = PerceptionPipeline(bus, st.perception.rois, st.perception.readers)
@@ -96,7 +117,20 @@ def _companion(a) -> int:
     client = build_client(st.governor_endpoint, key)
     rt = Runtime(bus)
     rt.add(DxcamSource(bus, buf, st.capture.process_name, st.capture.target_fps))
-    rt.add(ReflexLoop(bus, buf, reflex, client, planner, perc, rec, st.backends.chunk_len, st.backends.execute_fraction, st.capture.reflex_size))
+    rt.add(
+        ReflexLoop(
+            bus,
+            buf,
+            reflex,
+            client,
+            planner,
+            perc,
+            rec,
+            st.backends.chunk_len,
+            st.backends.execute_fraction,
+            st.capture.reflex_size,
+        )
+    )
     rt.add(SupervisorLoop(bus, buf, sup, planner, perc, st.perception.rois, a.goal, st.backends.supervisor_period_s))
     rec.start()
     try:

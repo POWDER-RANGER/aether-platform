@@ -4,6 +4,7 @@
 NitroGen's server speaks pickle: localhost only (see nitrogen.py docstring). Goal conditioning is ignored —
 NitroGen is not goal-conditioned; that gap is a research finding to record, not hide.
 """
+
 from __future__ import annotations
 
 import pickle

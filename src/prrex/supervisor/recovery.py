@@ -1,6 +1,7 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Stall / stuck detection (also the diagnostic hook for previously observed gameplay stalls, M1).
 Flags when the screen stops changing while the companion is commanding motion."""
+
 from __future__ import annotations
 
 from collections import deque

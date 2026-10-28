@@ -4,6 +4,7 @@
 Separate from aether.control.settings (Governor settings, already verified) — this file covers the
 platform: capture, perception, backends, recording, server. Bump SCHEMA_VERSION on breaking change.
 """
+
 from __future__ import annotations
 
 import hashlib

@@ -1,5 +1,6 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Run identity and provenance: who/what/which versions produced a record (instructions §11)."""
+
 from __future__ import annotations
 
 import hashlib
@@ -21,7 +22,9 @@ def _git_rev(root: Path) -> str:
 
 def _git_dirty(root: Path) -> bool:
     try:
-        return bool(subprocess.check_output(["git", "-C", str(root), "status", "--porcelain"], text=True, timeout=5).strip())
+        return bool(
+            subprocess.check_output(["git", "-C", str(root), "status", "--porcelain"], text=True, timeout=5).strip()
+        )
     except Exception:
         return True
 

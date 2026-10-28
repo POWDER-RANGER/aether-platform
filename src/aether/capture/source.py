@@ -1,6 +1,7 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Capture sources feeding the FrameBuffer. DxcamSource wraps the ported capture (screen.py, UNVERIFIED here);
 FileSource replays recorded frames for offline perception work — labelled as replay, never live (§10)."""
+
 from __future__ import annotations
 
 import time

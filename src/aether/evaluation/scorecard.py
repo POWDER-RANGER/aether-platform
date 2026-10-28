@@ -4,6 +4,7 @@
 Statuses follow §10 exactly. Results are appended to a JSONL ledger with run_id + evidence path; nothing is
 derived from mock data.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,16 +25,31 @@ class Criterion:
 
 
 SCORECARD = (
-    Criterion("E-01", "Emergency stop to neutral", "STOP file / hotkey -> neutral output latency", "<= 50 ms, 10/10 runs"),
-    Criterion("E-02", "Player override precedence", "physical input during companion output -> player wins", "next tick (<= 8.3 ms), 10/10"),
+    Criterion(
+        "E-01", "Emergency stop to neutral", "STOP file / hotkey -> neutral output latency", "<= 50 ms, 10/10 runs"
+    ),
+    Criterion(
+        "E-02",
+        "Player override precedence",
+        "physical input during companion output -> player wins",
+        "next tick (<= 8.3 ms), 10/10",
+    ),
     Criterion("E-03", "Watchdog neutralisation", "no valid intent + empty queue -> neutral", "<= 500 ms, 10/10"),
-    Criterion("E-04", "Intent rejection", "stale (>400 ms), replayed, forged, tampered packets rejected", "100% rejected"),
+    Criterion(
+        "E-04", "Intent rejection", "stale (>400 ms), replayed, forged, tampered packets rejected", "100% rejected"
+    ),
     Criterion("E-05", "Intent log integrity", "hash chain + seal verify on every run", "10/10 runs verify"),
     Criterion("E-06", "Output tick stability", "Governor tick jitter at 120 Hz", "p99 interval <= 12 ms over 10 min"),
     Criterion("E-07", "Capture latency", "dxcam grab -> FrameBuffer", "median <= 10 ms, p99 <= 25 ms"),
-    Criterion("E-08", "Reflex non-blocking", "reflex chunk cadence unaffected while supervisor runs", "cadence change <= 10%"),
-    Criterion("E-09", "Session reliability", "ENV-01 session without crash/unexpected exit/stall", "30 min, 10/10 sessions"),
-    Criterion("E-10", "Recording completeness", "streams + frames present, monotonic, replayable", "10/10 runs, 0 gaps > 1 s"),
+    Criterion(
+        "E-08", "Reflex non-blocking", "reflex chunk cadence unaffected while supervisor runs", "cadence change <= 10%"
+    ),
+    Criterion(
+        "E-09", "Session reliability", "ENV-01 session without crash/unexpected exit/stall", "30 min, 10/10 sessions"
+    ),
+    Criterion(
+        "E-10", "Recording completeness", "streams + frames present, monotonic, replayable", "10/10 runs, 0 gaps > 1 s"
+    ),
 )
 
 

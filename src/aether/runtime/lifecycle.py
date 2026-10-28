@@ -1,5 +1,6 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
 """Component lifecycle: ordered start, reverse stop, health, and lifecycle events on the bus."""
+
 from __future__ import annotations
 
 import threading

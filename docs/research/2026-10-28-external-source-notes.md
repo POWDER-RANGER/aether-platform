@@ -37,7 +37,7 @@ The active repository references `src/prrex/backends/nitrogen.py`; its verificat
 
 The brief supplies the governing licensing constraint: NitroGen is research-only; its weights and code must not be copied into this repository. Link-only reference is appropriate:
 - [NVIDIA NitroGen research](https://research.nvidia.com/labs/gamegan/nitrogen/)
-- [NVIDIA NitroGen GitHub](https://github.com/NVIDIA NitroGen)
+- [NVIDIA NitroGen GitHub](https://github.com/NVIDIA/NitroGen)
 
 **Do not infer 8 GB VRAM fit from parameter count or a model card.** Co-residency depends on weight format, precision/quantization, context, image preprocessing, runtime allocations, GPU display usage, and the selected supervisor. No RTX 4060 memory/latency test was run in this task. Chunk length 16 is a design parameter in the owner brief and draft, not proof of 16 successful actions per inference or sustained 120 Hz control.
 
@@ -57,17 +57,17 @@ This retrieval pass did not establish directly comparable published end-to-end l
 
 Sources identified:
 - [BALROG: Benchmarking Agentic LLM and VLM Reasoning On Games (OpenReview)](https://openreview.net/forum?id=fp6t3F669F) (retrieved 2026-10-28). The paper frames game tasks as long-horizon interactive evaluation and reports that visual inputs can reduce performance for several tested models; this supports measuring visual grounding rather than assuming VLM competence.
-- [AgentQuest (OpenReview search source)](https://openreview.net/) (retrieved 2026-10-28). The search result surfaced benchmark discussion around consistent prompting, multiple environments, and fine-grained progression metrics. The exact paper record and final publication metadata need a targeted follow-up before citation as a specific study.
 - [NVIDIA NitroGen research](https://research.nvidia.com/labs/gamegan/nitrogen/) (retrieved 2026-10-28), for the generalist gameplay-policy research direction; do not treat research demonstrations as PR-REX performance evidence.
 
 **Evaluation implications:** define scenario ground truth separately from model interpretation; distinguish perception correctness from objective progression and action execution; record wall-clock and monotonic timing; include no-op/neutral outcomes, player override frequency, recoveries, failed attempts and confidence calibration; use repeated trials and disclose variance. Do not use a single successful demonstration as an evaluation result.
 
 ## Shared autonomy and control arbitration
 
-Candidate primary-source literature and accessible research starting points:
-- [Shared autonomy: A survey](https://arxiv.org/abs/1804.XXXX) — citation is intentionally not asserted: the search result did not verify a stable exact paper identifier during this pass.
-- [Shared control for assistive robotics: literature search](https://scholar.google.com/scholar?q=shared+control+assistive+robotics+human+authority) (retrieved 2026-10-28).
-- [Human-robot shared control and arbitration literature search](https://scholar.google.com/scholar?q=shared+autonomy+control+arbitration+human+authority) (retrieved 2026-10-28).
+Unconfirmed search leads (not cited research sources):
+- Google Scholar search lead: [shared control for assistive robotics](https://scholar.google.com/scholar?q=shared+control+assistive+robotics+human+authority) (retrieved 2026-10-28).
+- Google Scholar search lead: [human-robot shared control and arbitration](https://scholar.google.com/scholar?q=shared+autonomy+control+arbitration+human+authority) (retrieved 2026-10-28).
+
+No specific shared-autonomy paper is cited in this note; a stable primary publication record must be verified before adding one.
 
 The governing design implication is consistent with the project principle: preserve a human's ability to interrupt or take over; make authority transitions explicit; do not conflate inferred intent with confirmed intent; ensure neutral output on stop/fault. This note does not claim a systematic literature review or assert a specific quantitative result.
 

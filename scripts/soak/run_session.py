@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""Owner workstation soak harness; hardware path is UNVERIFIED until an MSI run is recorded."""
+
 import argparse
 import json
 import os

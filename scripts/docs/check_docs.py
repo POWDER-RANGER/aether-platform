@@ -2,7 +2,7 @@ from __future__ import annotations
 import re,sys
 from pathlib import Path
 LABELS={'VERIFIED','PARTIALLY VERIFIED','UNVERIFIED','FAILED','BLOCKED','NOT IMPLEMENTED'}
-STATUS=re.compile(r'(?im)^\s*(?:\*\*)?status(?:\*\*)?\s*:\s*([^|\n]+)')
+STATUS=re.compile(r'(?im)^\s*\*{0,2}status:\*{0,2}\s*([^|\n]+)')
 LINK=re.compile(r'!?\[[^]]*\]\(([^)]+)\)')
 PATH=re.compile(r'\x60((?:src|tests|scripts|docs|configuration|interfaces|evidence)/[^\x60]+)\x60')
 def check(root:Path):
@@ -11,7 +11,7 @@ def check(root:Path):
  for doc in docs:
   if not doc.is_file():continue
   content=doc.read_text(encoding='utf-8')
-  if doc.relative_to(root).as_posix() not in {'docs/decisions/DECISIONS.md'}:
+  if doc.relative_to(root).as_posix()!='docs/decisions/DECISIONS.md':
    for match in STATUS.finditer(content):
     label=match.group(1).strip().strip('*_').upper()
     if label not in LABELS:errors.append(f'{doc.relative_to(root)}: invalid status label {label!r}')
@@ -35,7 +35,8 @@ def check(root:Path):
     for row in block[2:]:
      values=[c.strip().strip('*_').upper() for c in row.strip('|').split('|')]
      for col in status_columns:
-      if col<len(values) and values[col] and values[col] not in LABELS:errors.append(f'{doc.relative_to(root)}: invalid table status label {values[col]!r}')
+      if col<len(values) and values[col] and values[col] not in LABELS:
+       errors.append(f'{doc.relative_to(root)}: invalid table status label {values[col]!r}')
    columns=[n for n,c in enumerate(cells) if c in {'path','file path','repository path','evidence path'}]
    for row in block[2:]:
     values=[c.strip() for c in row.strip('|').split('|')]
@@ -48,9 +49,9 @@ def check(root:Path):
   if not path.is_file() or '.git' in path.parts or '.pytest_tmp' in path.parts:continue
   rel=path.relative_to(root).as_posix()
   if rel.startswith(('configuration/','docs/protocols/')) or path.suffix.lower() not in {'.md','.yaml','.yml','.json','.py','.toml','.txt'}:continue
-  try:content=path.read_text(encoding='utf-8')
+  try:source=path.read_text(encoding='utf-8')
   except UnicodeDecodeError:continue
-  for number,line in enumerate(content.splitlines(),1):
+  for number,line in enumerate(source.splitlines(),1):
    if 'PROPOSED' in line.upper() and 'THRESHOLD' in line.upper() and 'NOT FROZEN' not in line.upper():
     errors.append(f'{rel}:{number}: proposed threshold missing NOT FROZEN')
  return errors

@@ -77,12 +77,21 @@ def write_evidence(category: str, run_id: str, payload: dict, root: str | Path =
     return path
 
 
+def _git_revision() -> str:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=2, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+
+
 def _base_record(tool: str, run_id: str) -> dict:
     return {
         "run_id": run_id,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "tool": tool,
-        "git_rev": "unknown",
+        "git_rev": _git_revision(),
         "hardware": hardware_info(),
         "raw_samples": [],
     }
@@ -269,6 +278,102 @@ def run_nonblocking(duration_s: float, supervisor_sleep_s: float, root: str | Pa
     return record
 
 
+
+def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence") -> dict:
+    if backend not in {"ollama", "nitrogen"}:
+        raise ValueError("backend must be ollama or nitrogen")
+    if calls < 1:
+        raise ValueError("calls must be at least 1")
+    import numpy as np
+
+    image = np.zeros((256, 256, 3), dtype=np.uint8)  # synthetic RGB input, not captured data
+    selected = ["ollama", "nitrogen"] if concurrent else [backend]
+    results: dict[str, dict] = {}
+    gpu_samples: list[int] = []
+    gpu_stop = threading.Event()
+    smi = shutil.which("nvidia-smi")
+
+    def poll_gpu() -> None:
+        if not smi:
+            return
+        while not gpu_stop.is_set():
+            try:
+                result = subprocess.run(
+                    [smi, "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                    check=True,
+                )
+                gpu_samples.extend(int(line.strip()) for line in result.stdout.splitlines() if line.strip().isdigit())
+            except (OSError, subprocess.SubprocessError, ValueError):
+                pass
+            gpu_stop.wait(0.25)
+
+    def measure(name: str) -> None:
+        started = time.perf_counter()
+        try:
+            if name == "ollama":
+                from prrex.backends.ollama_vlm import OllamaSupervisor
+
+                instance = OllamaSupervisor()
+                call = lambda: instance.assess({"synthetic": image}, "synthetic benchmark image", None, [])
+            else:
+                from prrex.backends.nitrogen_reflex import NitrogenReflex
+
+                instance = NitrogenReflex()
+                call = lambda: instance.act(image, None, 16)
+            call()
+            cold_ms = (time.perf_counter() - started) * 1000
+            warm = []
+            for _ in range(calls):
+                tick = time.perf_counter()
+                call()
+                warm.append((time.perf_counter() - tick) * 1000)
+            results[name] = {
+                "status": "completed",
+                "cold_start_ms": cold_ms,
+                "warm_latency_ms": summarize_samples(warm),
+                "warm_samples_ms": warm,
+                "calls": calls,
+                "input": "synthetic 256x256 RGB image",
+            }
+            close = getattr(instance, "close", None)
+            if callable(close):
+                close()
+        except Exception as exc:
+            results[name] = {
+                "status": "failed",
+                "error": f"{type(exc).__name__}: {exc}",
+                "calls": 0,
+                "input": "synthetic 256x256 RGB image",
+            }
+
+    poller = threading.Thread(target=poll_gpu, daemon=True)
+    poller.start()
+    workers = [threading.Thread(target=measure, args=(name,)) for name in selected]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+    gpu_stop.set()
+    poller.join(timeout=1)
+    run_id = new_run_id()
+    record = _base_record("inference", run_id)
+    record.update(
+        {
+            "backend": backend,
+            "concurrent": concurrent,
+            "results": results,
+            "gpu_memory_used_mib_samples": gpu_samples,
+            "gpu_memory_poll": "available" if smi else "nvidia-smi unavailable",
+            "gpu_memory_peak_mib": max(gpu_samples, default=None),
+        }
+    )
+    record["evidence_path"] = str(write_evidence("inference", run_id, record, root))
+    return record
+
+
 def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
     run = Path(run_dir)
     run_id = run.name
@@ -318,8 +423,13 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
             failures.append(f"frames.jsonl invalid: {exc}")
     else:
         failures.append("frames.jsonl missing")
+    frame_times = [float(row["t_mono"]) for row in indexed if "t_mono" in row]
+    if not all(right >= left for left, right in zip(frame_times, frame_times[1:])):
+        failures.append("frames.jsonl timestamps are not monotonic")
     indexed_files = {f"{int(row['seq']):08d}.jpg" for row in indexed if "seq" in row}
     disk_files = {path.name for path in frames_dir.glob("*.jpg")} if frames_dir.is_dir() else set()
+    if not frames_dir.is_dir():
+        failures.append("frames directory missing")
     frames_match = indexed_files == disk_files
     if not frames_match:
         failures.append("frames.jsonl index does not match JPEG files on disk")

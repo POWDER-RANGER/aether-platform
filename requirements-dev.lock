@@ -1,0 +1,7 @@
+# Pinned direct packages installed by CI; hardware extras are intentionally excluded.
+numpy==2.2.6
+pyzmq==27.1.0
+PyYAML==6.0.3
+Pillow==12.0.0
+pytest==8.4.2
+ruff==0.14.3

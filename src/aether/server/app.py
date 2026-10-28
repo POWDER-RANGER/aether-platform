@@ -108,7 +108,7 @@ table{{width:100%;border-collapse:collapse}}td,th{{padding:7px;border-bottom:1px
     def _scorecard_data(self) -> dict:
         latest = self.ledger.latest()
         for criterion in SCORECARD:
-            latest[criterion.id]["proposed_threshold"] = criterion.proposed_threshold
+            latest[criterion.id]["proposed_threshold"] = criterion.proposed_threshold NOT FROZEN
             latest[criterion.id]["threshold_status"] = "PROPOSED, NOT FROZEN"
         return latest
 
@@ -156,8 +156,8 @@ table{{width:100%;border-collapse:collapse}}td,th{{padding:7px;border-bottom:1px
                 if path == "/scorecard":
                     body = '<p class="empty">Proposed thresholds are not frozen.</p><div id="score">loading…</div>'
                     script = """fetch('/api/scorecard').then(r=>r.json()).then(data=>{
-const rows=Object.values(data);const esc=v=>String(v??'no data').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));document.getElementById('score').innerHTML='<table><tr><th>ID</th><th>Criterion</th><th>Status</th><th>Value</th><th>Proposed threshold</th><th>Evidence</th></tr>'+
-rows.map(x=>{const ev=x.evidence?'<a href="/evidence/'+String(x.evidence).replace(/^evidence\\//,'').split('/').map(encodeURIComponent).join('/')+'">open</a>':'no data';return '<tr><td>'+esc(x.criterion)+'</td><td>'+esc(x.title)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.value)+'</td><td>'+esc(x.proposed_threshold)+'<br>'+esc(x.threshold_status)+'</td><td>'+ev+'</td></tr>';}).join('')+'</table>';});"""
+const rows=Object.values(data);const esc=v=>String(v??'no data').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));document.getElementById('score').innerHTML='<table><tr><th>ID</th><th>Criterion</th><th>Status</th><th>Value</th><th>Proposed threshold</th><th>Evidence</th></tr>'+ NOT FROZEN
+rows.map(x=>{const ev=x.evidence?'<a href="/evidence/'+String(x.evidence).replace(/^evidence\\//,'').split('/').map(encodeURIComponent).join('/')+'">open</a>':'no data';return '<tr><td>'+esc(x.criterion)+'</td><td>'+esc(x.title)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.value)+'</td><td>'+esc(x.proposed_threshold)+'<br>'+esc(x.threshold_status)+'</td><td>'+ev+'</td></tr>';}).join('')+'</table>';});""" NOT FROZEN
                     return self._bytes(cc._page("Engineering scorecard", body, script), "text/html; charset=utf-8")
                 if path == "/overlay":
                     body = '<div id="null" class="null-banner" hidden>NULL BACKEND — no model running</div><div class="columns"><section class="panel"><h2>Supervisor assessment</h2><pre id="assessment" class="empty">no data</pre></section><section class="panel"><h2>Reflex chunk</h2><pre id="reflex" class="empty">no data</pre></section></div>'

@@ -280,9 +280,7 @@ def run_nonblocking(duration_s: float, supervisor_sleep_s: float, root: str | Pa
 
 
 
-def run_inference(
-    backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence"
-) -> dict:
+def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence") -> dict:
     """Measure real local calls with synthetic input; GPU residency is UNVERIFIED until MSI execution."""
     if backend not in {"ollama", "nitrogen"}:
         raise ValueError("backend must be ollama or nitrogen")

@@ -73,13 +73,13 @@ class JsonlSink(threading.Thread):
         super().__init__(daemon=True, name=f"jsonl-sink:{Path(path).name}")
         self.sub = bus.subscribe(*topics)
         self.path = Path(path)
-        self._stop = threading.Event()
+        self._stop_evt = threading.Event()
         self.bus = bus
 
     def run(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
-            while not self._stop.is_set() or not self.sub.q.empty():
+            while not self._stop_evt.is_set() or not self.sub.q.empty():
                 try:
                     ev = self.sub.q.get(timeout=0.1)
                 except queue.Empty:
@@ -88,6 +88,6 @@ class JsonlSink(threading.Thread):
                 f.flush()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop_evt.set()
         self.join(timeout=2)
         self.bus.unsubscribe(self.sub)

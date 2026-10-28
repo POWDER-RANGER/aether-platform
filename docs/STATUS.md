@@ -65,3 +65,16 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 2. Recording: synchronized frames, player input, intended / commanded / delivered actions, from the event bus.
 3. Engineering scorecard E-01 – E-10 and the first Command Center view reading real runtime state.
 4. Hardware gaps when the owner can: Pause hotkey, physical pad passthrough and live override, DS4 axes, one ENV-01 session through each output path.
+
+
+## 6. 2026-10-28 branch / draft clarification
+
+This section is an evidence annotation, not a claim that the current snapshot has changed. The repository inventory and research lead created on branch `chatgpt/enrich-20261028` are recorded in `docs/research/` on that branch.
+
+- Mainline base inspected: `ea25d12678d40b8aea03d6326b12866bac95e6df`.
+- Open PR #4 proposes a runtime slice and is not included in this mainline snapshot.
+- Open draft PR #5 proposes the broader scaffold; its description says tests were deliberately skipped and only syntax compilation was run. It is not verified capability evidence.
+- Hardware-dependent capture, controller passthrough, live player override with a physical pad, real application/game input, VLM/reflex co-residency, VRAM, capture latency and sustained reflex timing remain UNVERIFIED unless supported by a current owner-side run record.
+- No status label, frozen threshold, or M1–M6 milestone is changed by the enrichment branch.
+
+Use `docs/research/2026-10-28-inventory-and-evidence.md` for the detailed file inventory and `docs/research/2026-10-28-external-source-notes.md` for source links and explicit research gaps.

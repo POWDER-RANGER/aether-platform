@@ -76,14 +76,12 @@ def run_scenario(
             os.environ["AETHER_SOAK_RUN_ID"] = old_id
 
     metrics = {}
-    if screening:
-        outcome = "screening"
-    else:
-        for metric in scenario.metrics:
-            metrics[metric] = input_fn(f"{metric}: ")
-        outcome = input_fn(f"Outcome ({' | '.join(sorted(OUTCOMES))}): ").strip()
-        if outcome not in OUTCOMES:
-            raise ValueError(f"invalid outcome label: {outcome}")
+    for metric in scenario.metrics:
+        metrics[metric] = input_fn(f"{metric}: ")
+    reported_outcome = input_fn("Outcome (VERIFIED | PARTIALLY VERIFIED | UNVERIFIED | FAILED | BLOCKED | NOT IMPLEMENTED): ").strip()
+    if reported_outcome not in OUTCOMES:
+        raise ValueError(f"invalid outcome label: {reported_outcome}")
+    outcome = "screening" if screening else reported_outcome
     notes = input_fn("Notes: ")
 
     record = {
@@ -95,6 +93,7 @@ def run_scenario(
         "formal": scenario.kind == "formal" and not screening,
         "screening": screening,
         "outcome": outcome,
+        "reported_outcome": reported_outcome,
         "metrics": metrics,
         "notes": notes,
         "companion_exit_code": exit_code,

@@ -6,13 +6,13 @@ import threading
 import time
 
 from aether.evaluation.scorecard import Ledger
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import Runtime
+from aether.runtime.topics import TopicBus
 from aether.server.app import CommandCenter
 
 
 def test_command_center_get_routes_and_read_only_surface(tmp_path) -> None:
-    bus = EventBus()
+    bus = TopicBus()
     cc = CommandCenter(bus, Runtime(bus), tmp_path / "runs", Ledger(tmp_path / "scorecard.jsonl"), port=0)
     thread = threading.Thread(target=cc.serve_forever, daemon=True)
     thread.start()

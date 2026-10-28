@@ -7,7 +7,7 @@ import threading
 import time
 from enum import Enum
 
-from .events import EventBus
+from .topics import TopicBus
 
 
 class State(str, Enum):
@@ -22,7 +22,7 @@ class State(str, Enum):
 class Component:
     name = "component"
 
-    def __init__(self, bus: EventBus):
+    def __init__(self, bus: TopicBus):
         self.bus = bus
         self.state = State.CREATED
         self.error: str | None = None
@@ -43,7 +43,7 @@ class ThreadedComponent(Component):
 
     period_s = 0.0
 
-    def __init__(self, bus: EventBus):
+    def __init__(self, bus: TopicBus):
         super().__init__(bus)
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -77,7 +77,7 @@ class ThreadedComponent(Component):
 
 
 class Runtime:
-    def __init__(self, bus: EventBus):
+    def __init__(self, bus: TopicBus):
         self.bus = bus
         self.components: list[Component] = []
 

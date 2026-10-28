@@ -1,15 +1,12 @@
 """Seeded synthetic RGB scene generator. Every rendered element is SYNTHETIC."""
+
 from __future__ import annotations
 
 import numpy as np
 
 
 class SyntheticScene:
-    """Create deterministic 320x180 RGB frames with moving square, health bar, text block and objective.
-
-    Coordinates, colors and timing are synthetic fixtures, not observations of any real application.
-    Health fill decreases by 0.01 per second from 1.0, clamped at zero.
-    """
+    """Create deterministic synthetic frames; no real application is modeled."""
 
     SYNTHETIC = True
 
@@ -24,13 +21,12 @@ class SyntheticScene:
         image = np.zeros((self.height, self.width, 3), dtype=np.uint8)
         image[:] = (18, 24, 32)
         x = 12 + (int(elapsed_s * 30) % max(1, self.width - 40))
-        image[65:85, x : x + 20] = (40, 180, 230)  # SYNTHETIC moving square
-        image[12:22, 12:112] = (45, 45, 45)  # SYNTHETIC health bar background
+        image[65:85, x : x + 20] = (40, 180, 230)
+        image[12:22, 12:112] = (45, 45, 45)
         fill = int(round(98 * self.health_ratio(elapsed_s)))
-        image[14:20, 13 : 13 + fill] = (40, 220, 80)  # SYNTHETIC health fill
-        image[110:130, 14:100] = (210, 210, 210)  # SYNTHETIC text-like block
-        image[145:155, 270:280] = (240, 180, 30)  # SYNTHETIC objective marker
-        # Seeded, bounded visual variation keeps the fixture deterministic for a given seed/sequence.
+        image[14:20, 13 : 13 + fill] = (40, 220, 80)
+        image[110:130, 14:100] = (210, 210, 210)
+        image[145:155, 270:280] = (240, 180, 30)
         if seq % 7 == 0:
             image[30:32, 200:220] = (int(self.rng.integers(1, 255)), 80, 80)
         return image

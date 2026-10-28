@@ -1,4 +1,5 @@
 """Threaded synthetic capture source. Emits synthetic frames and capture.heartbeat events."""
+
 from __future__ import annotations
 
 import time

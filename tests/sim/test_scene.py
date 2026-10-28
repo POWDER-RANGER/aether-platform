@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 
 import numpy as np
@@ -20,7 +21,7 @@ def test_scene_is_deterministic_and_health_schedule_is_readable():
     for seq in range(1, 20):
         frame = a.frame(seq, seq / 10)
         assert np.array_equal(frame, b.frame(seq, seq / 10))
-        crop = roi_crop(frame, (12/320, 12/180, 112/320, 22/180))
+        crop = roi_crop(frame, (12 / 320, 12 / 180, 112 / 320, 22 / 180))
         fact = BarReader("health", (40, 220, 80), tol=8, min_conf_pixels=1).read(crop, seq / 10, seq)
         assert fact is not None
         assert abs(float(fact.value) - a.health_ratio(seq / 10)) <= 0.05
@@ -52,6 +53,9 @@ def test_synthetic_source_records_frames_and_streams(tmp_path):
     result = verify_run(run, tmp_path / "evidence")
     assert result["status"] == "VERIFIED"
     assert last_seq > 0
-    assert all((run / "streams" / f"{name}.jsonl").stat().st_size > 0 for name in ("intended", "commanded", "delivered", "observed"))
-    rows = [__import__("json").loads(line) for line in (run / "frames.jsonl").read_text().splitlines()]
+    assert all(
+        (run / "streams" / f"{name}.jsonl").stat().st_size > 0
+        for name in ("intended", "commanded", "delivered", "observed")
+    )
+    rows = [json.loads(line) for line in (run / "frames.jsonl").read_text().splitlines()]
     assert {row["seq"] for row in rows} == {int(path.stem) for path in (run / "frames").glob("*.jpg")}

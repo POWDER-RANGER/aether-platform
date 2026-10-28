@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from aether.runtime.events import EventBus
+from aether.runtime.topics import TopicBus
 
 from .frame_buffer import Frame
 from .preprocess import roi_crop
@@ -12,7 +12,7 @@ from .world_state import WorldState
 
 
 class PerceptionPipeline:
-    def __init__(self, bus: EventBus, rois: dict, reader_specs: dict):
+    def __init__(self, bus: TopicBus, rois: dict, reader_specs: dict):
         self.bus = bus
         self.rois = {k: tuple(v) for k, v in rois.items()}
         self.readers: dict[str, Reader] = {name: build_reader(name, spec) for name, spec in reader_specs.items()}

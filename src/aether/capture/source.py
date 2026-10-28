@@ -10,14 +10,14 @@ from pathlib import Path
 import numpy as np
 
 from aether.perception.frame_buffer import FrameBuffer
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import ThreadedComponent
+from aether.runtime.topics import TopicBus
 
 
 class DxcamSource(ThreadedComponent):
     name = "capture.dxcam"
 
-    def __init__(self, bus: EventBus, buf: FrameBuffer, process_name: str, fps: int = 60):
+    def __init__(self, bus: TopicBus, buf: FrameBuffer, process_name: str, fps: int = 60):
         super().__init__(bus)
         self.buf, self.process_name, self.period_s = buf, process_name, 1.0 / fps
         self._cam = None
@@ -47,7 +47,7 @@ class DxcamSource(ThreadedComponent):
 class FileSource(ThreadedComponent):
     name = "capture.replay"
 
-    def __init__(self, bus: EventBus, buf: FrameBuffer, frames_dir: str | Path, fps: float = 10.0, loop: bool = False):
+    def __init__(self, bus: TopicBus, buf: FrameBuffer, frames_dir: str | Path, fps: float = 10.0, loop: bool = False):
         super().__init__(bus)
         self.buf, self.period_s, self.loop = buf, 1.0 / fps, loop
         self.files = sorted(Path(frames_dir).glob("*.jpg")) + sorted(Path(frames_dir).glob("*.png"))

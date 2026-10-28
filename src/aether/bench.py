@@ -198,7 +198,7 @@ def _reflex_cadence(duration_s: float, supervisor_delay_s: float | None) -> dict
 
     from aether.perception.frame_buffer import FrameBuffer
     from aether.perception.pipeline import PerceptionPipeline
-    from aether.runtime.events import EventBus
+    from aether.runtime.topics import TopicBus
     from prrex.backends.base import NullReflex, SupervisorOutput
     from prrex.runtime import ReflexLoop, SupervisorLoop
     from prrex.supervisor.planner import Planner
@@ -216,7 +216,7 @@ def _reflex_cadence(duration_s: float, supervisor_delay_s: float | None) -> dict
                 time.sleep(supervisor_delay_s)
             return SupervisorOutput(None, None, [], "synthetic delay benchmark", 0.0, 0.0, "synthetic-slow")
 
-    bus = EventBus()
+    bus = TopicBus()
     buffer = FrameBuffer(240)
     client = FakeClient()
     perception = PerceptionPipeline(bus, {}, {})

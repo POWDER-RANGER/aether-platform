@@ -21,8 +21,8 @@ from aether.perception.frame_buffer import FrameBuffer
 from aether.perception.pipeline import PerceptionPipeline
 from aether.perception.preprocess import reflex_view, roi_crop
 from aether.recording.session import RecordingSession
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import ThreadedComponent
+from aether.runtime.topics import TopicBus
 from prrex.backends.base import ReflexBackend, SupervisorBackend
 from prrex.supervisor.planner import Planner
 from prrex.supervisor.recovery import StallDetector
@@ -33,7 +33,7 @@ class ReflexLoop(ThreadedComponent):
 
     def __init__(
         self,
-        bus: EventBus,
+        bus: TopicBus,
         buf: FrameBuffer,
         backend: ReflexBackend,
         client: GovernorClient,
@@ -99,7 +99,7 @@ class SupervisorLoop(ThreadedComponent):
 
     def __init__(
         self,
-        bus: EventBus,
+        bus: TopicBus,
         buf: FrameBuffer,
         backend: SupervisorBackend,
         planner: Planner,

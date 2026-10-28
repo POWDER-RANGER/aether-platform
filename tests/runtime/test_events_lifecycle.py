@@ -6,12 +6,12 @@ import time
 
 import pytest
 
-from aether.runtime.events import EventBus, JsonlSink
 from aether.runtime.lifecycle import Component, Runtime, State, ThreadedComponent
+from aether.runtime.topics import JsonlSink, TopicBus
 
 
 def test_event_topics_sequence_and_wildcards() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     exact = bus.subscribe("x.y")
     prefix = bus.subscribe("x.*")
     all_topics = bus.subscribe("*")
@@ -25,7 +25,7 @@ def test_event_topics_sequence_and_wildcards() -> None:
 
 
 def test_subscriber_overflow_drops_oldest() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     sub = bus.subscribe("*")
     sub.q = queue.Queue(maxsize=2)
     bus.publish("a", value=1)
@@ -36,7 +36,7 @@ def test_subscriber_overflow_drops_oldest() -> None:
 
 
 def test_publish_does_not_wait_for_subscriber() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     sub = bus.subscribe("*")
     sub.q = queue.Queue(maxsize=1)
     bus.publish("a")
@@ -47,7 +47,7 @@ def test_publish_does_not_wait_for_subscriber() -> None:
 
 
 def test_jsonl_sink_writes_and_joins(tmp_path) -> None:
-    bus = EventBus()
+    bus = TopicBus()
     path = tmp_path / "nested" / "events.jsonl"
     sink = JsonlSink(bus, path, "*")
     sink.start()
@@ -75,7 +75,7 @@ class RecordingComponent(Component):
 
 
 def test_runtime_start_order_reverse_stop_and_lifecycle_events() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     events = bus.subscribe("lifecycle")
     order = []
     rt = Runtime(bus)
@@ -89,7 +89,7 @@ def test_runtime_start_order_reverse_stop_and_lifecycle_events() -> None:
 
 
 def test_start_failure_marks_failed_and_stops_started_components() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     order = []
     rt = Runtime(bus)
     first = RecordingComponent(bus, "one", order)
@@ -110,7 +110,7 @@ def test_threaded_component_loop_exception_is_recorded() -> None:
         def loop_once(self):
             raise ValueError("loop failure")
 
-    component = Broken(EventBus())
+    component = Broken(TopicBus())
     component.start()
     deadline = time.monotonic() + 1
     while component.state is not State.FAILED and time.monotonic() < deadline:

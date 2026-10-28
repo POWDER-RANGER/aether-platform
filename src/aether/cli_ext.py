@@ -227,6 +227,7 @@ def _companion(a) -> int:
     dump_monitor_stop = threading.Event()
     dump_monitor = None
     if dump_request and fault_handle:
+
         def monitor_dump_request():
             while not dump_monitor_stop.is_set():
                 if dump_request.exists():

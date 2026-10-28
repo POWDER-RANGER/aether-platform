@@ -51,13 +51,28 @@ def test_report_keeps_research_and_companion_separate(tmp_path) -> None:
     directory.mkdir()
     for mode, run_id, value in [("research", "r1", "raw-r"), ("companion", "c1", "raw-c")]:
         (directory / f"{run_id}.json").write_text(
-            json.dumps({"scenario": "SCN-01", "mode": mode, "run_id": run_id,
-                        "metrics": {"metric": value}, "outcome": "UNVERIFIED"}),
+            json.dumps(
+                {
+                    "scenario": "SCN-01",
+                    "mode": mode,
+                    "run_id": run_id,
+                    "metrics": {"metric": value},
+                    "outcome": "UNVERIFIED",
+                }
+            ),
             encoding="utf-8",
         )
     (directory / "screening.json").write_text(
-        json.dumps({"scenario": "SCN-01", "mode": "research", "run_id": "screen",
-                    "screening": True, "metrics": {"metric": "screen-value"}, "outcome": "screening"}),
+        json.dumps(
+            {
+                "scenario": "SCN-01",
+                "mode": "research",
+                "run_id": "screen",
+                "screening": True,
+                "metrics": {"metric": "screen-value"},
+                "outcome": "screening",
+            }
+        ),
         encoding="utf-8",
     )
     report = scenario_report("SCN-01", tmp_path)

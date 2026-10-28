@@ -79,7 +79,7 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
     )
     command = [sys.executable, "-m", "aether.cli_ext", "companion", "--settings", settings]
     creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
-    started_wall = datetime.now(timezone.utc).isoformat()
+    started_wall = datetime.now(UTC).isoformat()
     started = time.monotonic()
     classification = "completed"
     duration_complete = False

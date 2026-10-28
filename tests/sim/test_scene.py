@@ -4,16 +4,15 @@ import time
 
 import numpy as np
 
+from aether.bench import verify_run
 from aether.perception.frame_buffer import FrameBuffer
-from aether.perception.pipeline import PerceptionPipeline
+from aether.perception.preprocess import roi_crop
+from aether.perception.readers import BarReader
 from aether.recording.session import RecordingSession
 from aether.runtime.events import EventBus
 from aether.runtime.identity import RunIdentity
 from aether.sim.scene import SyntheticScene
 from aether.sim.source import SyntheticSource
-from aether.bench import verify_run
-from aether.perception.readers import BarReader
-from aether.perception.preprocess import roi_crop
 
 
 def test_scene_is_deterministic_and_health_schedule_is_readable():

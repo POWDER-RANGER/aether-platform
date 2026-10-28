@@ -8,7 +8,7 @@ import time
 import pytest
 
 from aether.runtime.events import EventBus, JsonlSink
-from aether.runtime.lifecycle import Runtime, State, ThreadedComponent
+from aether.runtime.lifecycle import Component, Runtime, State, ThreadedComponent
 
 
 def test_event_topics_sequence_and_wildcards() -> None:

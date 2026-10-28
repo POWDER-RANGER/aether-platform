@@ -21,3 +21,21 @@ def test_redact_copy_and_gate(tmp_path):
         assert image.getpixel((10, 10)) == (0, 0, 0)
     with pytest.raises(ValueError, match="unredacted"):
         assert_shareable(source, True)
+
+
+def test_empty_redaction_rejected(tmp_path):
+    source = tmp_path / "src"
+    (source / "frames").mkdir(parents=True)
+    (source / "manifest.json").write_text(json.dumps({"identity": {"run_id": "r1"}}))
+    with pytest.raises(ValueError, match="no redaction boxes"):
+        redact_run(source, tmp_path / "out", [])
+    assert not (tmp_path / "out").exists()
+
+
+def test_manifest_with_no_boxes_not_shareable(tmp_path):
+    run = tmp_path / "run"
+    run.mkdir()
+    manifest = {"redaction": {"redacted": True, "frame_pixels_blacked": True, "boxes_normalized": []}}
+    (run / "manifest.json").write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="unredacted"):
+        assert_shareable(run, True)

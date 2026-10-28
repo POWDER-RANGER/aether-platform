@@ -11,6 +11,9 @@ def redact_run(run_dir, output_dir, boxes):
     source, output = Path(run_dir).resolve(), Path(output_dir).resolve()
     if not source.is_dir() or source == output or source in output.parents:
         raise ValueError("output must be outside source run")
+    boxes = [tuple(b) for b in boxes]
+    if not boxes:
+        raise ValueError("no redaction boxes given; refusing to produce a copy marked redacted")
     for box in boxes:
         if len(box) != 4 or not (0 <= box[0] < box[2] <= 1 and 0 <= box[1] < box[3] <= 1):
             raise ValueError(f"invalid normalized ROI: {box}")
@@ -56,5 +59,9 @@ def assert_shareable(run_dir, for_sharing=False):
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError("cannot share without a valid manifest") from exc
     redaction = manifest.get("redaction", {})
-    if not redaction.get("redacted") or not redaction.get("frame_pixels_blacked"):
+    if (
+        not redaction.get("redacted")
+        or not redaction.get("frame_pixels_blacked")
+        or not redaction.get("boxes_normalized")
+    ):
         raise ValueError("sharing refused: run contains unredacted frames")

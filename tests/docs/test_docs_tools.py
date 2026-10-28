@@ -47,3 +47,11 @@ def test_index_derives_run_id_from_manifest_and_evidence_path(tmp_path):
     assert "run-10" in result
     assert "SCN-02" in result
     assert "E-10" in result
+
+
+def test_status_label_with_trailing_prose_rejected(tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/p.md").write_text("**Status:** NOT IMPLEMENTED (pending tooling)\n")
+    assert any("invalid status" in e for e in check(tmp_path))
+    (tmp_path / "docs/p.md").write_text("**Status:** NOT IMPLEMENTED\nPending tooling.\n")
+    assert check(tmp_path) == []

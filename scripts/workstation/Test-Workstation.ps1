@@ -39,7 +39,7 @@ $drivers = @(Get-CimInstance Win32_SystemDriver -ErrorAction SilentlyContinue |
   Where-Object { $_.Name -match 'ViGEm|HidHide' })
 foreach ($driver in $drivers) {
   $driverPath = [string]$driver.PathName
-  $driverPath = $driverPath.Trim('"') -replace '^\\\\SystemRoot', $env:SystemRoot
+  $driverPath = $driverPath.Trim('"') -replace '^\\SystemRoot', $env:SystemRoot
   $driverVersion = $null
   if (Test-Path -LiteralPath $driverPath) {
     $driverVersion = (Get-Item -LiteralPath $driverPath).VersionInfo.FileVersion

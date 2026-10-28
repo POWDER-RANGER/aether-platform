@@ -11,6 +11,7 @@ requested from a fresh observation. All controller output goes through GovernorC
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 
@@ -64,7 +65,7 @@ class ReflexLoop(ThreadedComponent):
         ws = self.perception.process(f)
         goal = self.planner.step(ws)
         out = self.backend.act(reflex_view(f.image, self.view_size), goal, self.chunk_len)
-        n = max(1, int(round(len(out.frames) * self.exec_frac)))
+        n = max(1, math.ceil(len(out.frames) * self.exec_frac))
         frames = out.frames[:n]
         # 120 Hz output tick; 400 ms intent TTL (architectural targets, §6). REFINE: take both from control settings.
         self.client.send_frames(

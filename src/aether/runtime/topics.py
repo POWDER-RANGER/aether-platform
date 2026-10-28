@@ -1,5 +1,5 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
-"""In-process topic bus (telemetry). Distinct from the typed, persisted aether.runtime.events.EventBus (PR #4). REFINE: route durable records through EventBus. Every subsystem publishes; recording and the Command Center subscribe.
+"""In-process topic bus (telemetry). Distinct from the typed, persisted aether.runtime.topics.TopicBus (PR #4). REFINE: route durable records through TopicBus. Every subsystem publishes; recording and the Command Center subscribe.
 
 Events are plain dicts so they serialise to JSONL unchanged. Publishing never blocks on a slow
 subscriber: each subscriber gets its own bounded queue; overflow drops the oldest and counts it.
@@ -73,13 +73,13 @@ class JsonlSink(threading.Thread):
         super().__init__(daemon=True, name=f"jsonl-sink:{Path(path).name}")
         self.sub = bus.subscribe(*topics)
         self.path = Path(path)
-        self._stop = threading.Event()
+        self._stop_evt = threading.Event()
         self.bus = bus
 
     def run(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:
-            while not self._stop.is_set() or not self.sub.q.empty():
+            while not self._stop_evt.is_set() or not self.sub.q.empty():
                 try:
                     ev = self.sub.q.get(timeout=0.1)
                 except queue.Empty:
@@ -88,6 +88,6 @@ class JsonlSink(threading.Thread):
                 f.flush()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop_evt.set()
         self.join(timeout=2)
         self.bus.unsubscribe(self.sub)

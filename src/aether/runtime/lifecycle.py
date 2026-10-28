@@ -100,11 +100,14 @@ class Runtime:
     def stop(self) -> None:
         for c in reversed(self.components):
             if c.state in (State.RUNNING, State.STARTING, State.FAILED):
-                c._set(State.STOPPING)
+                failed = c.state is State.FAILED
+                if not failed:
+                    c._set(State.STOPPING)
                 try:
                     c.stop()
                 finally:
-                    c._set(State.STOPPED)
+                    if not failed:
+                        c._set(State.STOPPED)
 
     def health(self) -> dict:
         return {c.name: c.health() for c in self.components}

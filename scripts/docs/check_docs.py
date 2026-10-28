@@ -11,7 +11,7 @@ def check(root:Path):
  for doc in docs:
   if not doc.is_file():continue
   content=doc.read_text(encoding='utf-8')
-  if doc.relative_to(root).as_posix()!='docs/decisions/DECISIONS.md':
+  if doc.relative_to(root).as_posix() not in {'docs/decisions/DECISIONS.md'}:
    for match in STATUS.finditer(content):
     label=match.group(1).strip().strip('*_').upper()
     if label not in LABELS:errors.append(f'{doc.relative_to(root)}: invalid status label {label!r}')
@@ -19,14 +19,26 @@ def check(root:Path):
    target=target.strip().split()[0].strip('<>').split('#',1)[0].split('?',1)[0]
    if target and not re.match(r'^(https?://|mailto:|#|data:)',target,re.I) and not (doc.parent/target).resolve().exists():
     errors.append(f'{doc.relative_to(root)}: broken link {target!r}')
-  lines=content.splitlines()
-  header=next((line.lower() for line in lines if line.strip().startswith('|') and ('path' in line.lower() or 'file' in line.lower() or 'evidence' in line.lower())), '')
-  if header and doc.relative_to(root).as_posix()!='docs/architecture/LEGACY-REFERENCE.md':
-   for line in lines:
-    if not line.strip().startswith('|'):continue
-    for cited in PATH.findall(line):
-     if any(token in cited for token in ('{','}','*','<','>','...')):continue
-     if not (root/cited).exists():errors.append(f'{doc.relative_to(root)}: cited table path does not exist: {cited}')
+  if doc.relative_to(root).as_posix()=='docs/architecture/LEGACY-REFERENCE.md':continue
+  lines=content.splitlines();i=0
+  while i<len(lines):
+   if not lines[i].strip().startswith('|'):
+    i+=1;continue
+   block=[]
+   while i<len(lines) and lines[i].strip().startswith('|'):
+    block.append(lines[i]);i+=1
+   header=block[0].lower()
+   if 'requested file' in header:continue
+   cells=[c.strip().lower() for c in block[0].strip('|').split('|')]
+   columns=[n for n,c in enumerate(cells) if c in {'path','file path','repository path','evidence path'}]
+   if not columns:continue
+   for row in block[2:]:
+    values=[c.strip() for c in row.strip('|').split('|')]
+    for col in columns:
+     if col>=len(values):continue
+     for cited in PATH.findall(values[col]):
+      if any(token in cited for token in ('{','}','*','<','>','...')):continue
+      if not (root/cited).exists():errors.append(f'{doc.relative_to(root)}: cited table path does not exist: {cited}')
  for path in root.rglob('*'):
   if not path.is_file() or '.git' in path.parts or '.pytest_tmp' in path.parts:continue
   rel=path.relative_to(root).as_posix()

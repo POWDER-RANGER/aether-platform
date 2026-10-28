@@ -73,6 +73,12 @@ def main(argv=None) -> int:
     verify = sp.add_parser("verify-run")
     verify.add_argument("run_dir")
     verify.add_argument("--evidence-root", default="evidence")
+    probe = sp.add_parser("probe-reader")
+    probe.add_argument("image")
+    probe.add_argument("--roi", required=True, help="normalized x0,y0,x1,y1")
+    probe.add_argument("--reader", choices=["bar"], default="bar")
+    probe.add_argument("--rgb", required=True, help="target RGB triplet")
+    probe.add_argument("--name", default="probe")
     a = ap.parse_args(argv)
 
     if a.cmd == "serve":
@@ -120,6 +126,26 @@ def main(argv=None) -> int:
         result = verify_run(a.run_dir, a.evidence_root)
         print(json.dumps(result, indent=2, default=str))
         return 0 if result["status"] == "VERIFIED" else 1
+    elif a.cmd == "probe-reader":
+        from dataclasses import asdict
+
+        import numpy as np
+        from PIL import Image
+
+        from aether.perception.preprocess import roi_crop
+        from aether.perception.readers import BarReader
+
+        try:
+            roi = tuple(float(value) for value in a.roi.split(","))
+            rgb = tuple(int(value) for value in a.rgb.split(","))
+        except ValueError as exc:
+            raise SystemExit(f"invalid ROI or RGB value: {exc}") from exc
+        if len(roi) != 4 or len(rgb) != 3 or any(value < 0 or value > 255 for value in rgb):
+            raise SystemExit("--roi needs four normalized values and --rgb needs three values in 0..255")
+        image = np.asarray(Image.open(a.image).convert("RGB"))
+        crop = roi_crop(image, roi)
+        fact = BarReader(a.name, rgb).read(crop, __import__("time").monotonic())
+        print(json.dumps(asdict(fact) if fact is not None else None, indent=2, default=str))
     return 0
 
 

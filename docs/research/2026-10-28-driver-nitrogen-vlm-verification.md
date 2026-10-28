@@ -164,3 +164,12 @@ These guidelines are design/checklist references, not peer-reviewed performance 
 ## Research status
 
 **PARTIALLY VERIFIED.** Driver lifecycle, official HidHide caveats, NitroGen transport/token contract, the NVIDIA non-commercial license and the available model benchmark boundaries are sourced. No published, hardware/configuration-matched VRAM or latency result for the Ollama vision variants was found. No target-hardware model or driver run was performed. The literature sources are primary citations, but this is a focused source pass rather than a systematic review.
+
+
+## Cumulative Firecrawl accounting update — 2026-10-28
+
+- Latest authenticated current balance: **740 / 1,000 credits remaining**.
+- Historical usage endpoint reports **121 credits used** in the period beginning 2026-10-01.
+- The first balance snapshot in this work was 901 credits, so the observed balance movement is 161 credits.
+- Search receipts visible in tool results account for 84 credits across the recorded search batches. The remaining balance movement and the historical-usage figure do not reconcile to those receipts. Scrape responses did not expose consistent per-call credit receipts.
+- Report the observed 740 remaining and 121 historical-period usage; do not invent a per-source credit allocation. The balance movement discrepancy is **UNRESOLVED**.

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from scripts.docs.build_index import build
 from scripts.docs.check_docs import check
 

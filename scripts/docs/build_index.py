@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LABELS = {"VERIFIED", "PARTIALLY VERIFIED", "UNVERIFIED", "FAILED", "BLOCKED", "NOT IMPLEMENTED"}
@@ -20,7 +20,7 @@ def build(root: Path) -> str:
             run_id = str(data.get("run_id") or data.get("identity", {}).get("run_id") or (parts[1] if len(parts) >= 3 else (path.stem if len(parts) == 2 else "")))
             date = str(data.get("timestamp_utc") or data.get("date") or "")
             if not date:
-                date = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).date().isoformat()
+                date = datetime.fromtimestamp(path.stat().st_mtime, UTC).date().isoformat()
             criterion = str(data.get("criterion") or data.get("scenario") or (parts[0] if parts else ""))
             candidate = str(data.get("evidence_label") or data.get("status") or data.get("outcome") or "").upper()
             label = candidate if candidate in LABELS else ""

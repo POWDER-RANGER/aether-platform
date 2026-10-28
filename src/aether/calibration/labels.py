@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -14,7 +14,7 @@ def append_label(path, *, run_id, frame_seq, roi, true_value, labeller, timestam
         "roi": roi,
         "true_value": true_value,
         "labeller": labeller,
-        "timestamp": timestamp or datetime.now(timezone.utc).isoformat(),
+        "timestamp": timestamp or datetime.now(UTC).isoformat(),
     }
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)

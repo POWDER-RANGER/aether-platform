@@ -1,0 +1,26 @@
+# DRAFT 2026-10-28. Thresholds not frozen. Neutral identifiers only.
+id: SCN-01
+title: Initial-state comprehension
+kind: formal
+environment: ENV-02
+modes:
+- research
+- companion
+setup: Load the owner-prepared save at the scenario start point; no input for 5 s.
+success:
+- Supervisor reports correct phase
+- Supervisor names the current objective matching the owner's ground-truth label
+- Explanation cites only visible evidence
+failure:
+- Phase wrong
+- Objective hallucinated
+- Claims an unobservable fact
+metrics:
+- phase_accuracy
+- objective_match
+- hallucination_count
+- latency_ms
+thresholds:
+  _status: PROPOSED - owner freezes before formal testing
+runs_required: 10
+time_limit_s: 900

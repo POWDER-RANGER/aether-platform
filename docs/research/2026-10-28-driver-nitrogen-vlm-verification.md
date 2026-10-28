@@ -57,7 +57,7 @@ The upstream [scripts/serve.py](https://github.com/MineDojo/NitroGen/blob/main/s
 - Info: `{"type": "info"}`; reply: `{"status": "ok", "info": <session metadata>}`.
 - Unknown type: `{"status": "error", "message": <description>}`.
 
-The upstream [ModelClient](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_client.py) serializes those request dictionaries with `pickle.dumps`, sends them over a ZeroMQ REQ socket, unpickles the reply, checks `status == "ok"`, and returns `response["pred"]`. (Retrieved 2026-10-28.)
+The upstream [ModelClient](https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_client.py) serializes those request dictionaries with `pickle.dumps`, sends them over a ZeroMQ REQ socket, unpickles the reply, checks `status == "ok"`, and returns `response["pred"]`. `play.py` calls reset, info, and predict; its loop sets `n = len(buttons)` and uses the returned `action_downsample_ratio` to hold each predicted action. For NitroGen, `action_downsample_ratio` is 1. (Retrieved 2026-10-28.)
 
 **Important transport exposure:** upstream `serve.py` binds `tcp://*:<port>`, not loopback-only. It also accepts pickle messages without an authentication layer. Do not run the upstream server on a trusted LAN or public interface as-is. The PR-REX adapter connects to `tcp://127.0.0.1:5555`, but that client-side loopback address does not constrain the server's wildcard bind. Any local deployment needs a verified loopback-only server bind or equivalent host isolation before use. This is a compatibility/security finding, not a claim that the current adapter itself binds a server.
 
@@ -73,14 +73,16 @@ Compare `src/prrex/backends/nitrogen_reflex.py` against this verified upstream c
 1. Request must contain `type="predict"` and `image` as a 256×256 RGB NumPy array.
 2. The ZMQ payload is pickle, not JSON; the response envelope is a dict with `status` and `pred`.
 3. The prediction payload is a dict with `j_left`, `j_right`, and `buttons`; each sequence has the same 16-step length in the published model-card format, and each button vector has 17 entries.
-4. Do not trust or unpickle replies from a non-local or otherwise untrusted server. Do not change the verified Governor/control layer as part of this adapter review.
+4. The current scaffold request envelope matches upstream (`type=predict`, `image`, pickle, `pred`). Compare its 2,000 ms receive timeout with upstream ModelClient's 30,000 ms timeout, and verify the NumPy frame is accepted by the selected image processor. The current adapter truncates returned frames to `chunk_len`; verify the actual returned length and preserve the source-defined token ordering. Do not change the verified Governor/control layer as part of this adapter review.
 5. Preserve the fact that the upstream model is described as a fast-reacting last-frame sensory policy, not a long-horizon planner. (See [upstream README](https://github.com/MineDojo/NitroGen) and [paper](https://arxiv.org/abs/2601.02427), retrieved 2026-10-28.)
 
 ## 4. Small local VLMs via Ollama: published size versus VRAM/latency
 
 The official [Ollama Qwen2.5-VL library page](https://ollama.com/library/qwen2.5vl) lists `qwen2.5vl:3b` at **3.2 GB** and `qwen2.5vl:7b` at **6.0 GB**, both with image input and a 125K context listing. The page says Qwen2.5-VL requires Ollama 0.7.0. The official [Ollama Gemma 3 page](https://ollama.com/library/gemma3) lists `gemma3:4b` at **3.4 GB** and `gemma3:12b` at **8.2 GB**; it describes Gemma 3 4B as a vision model and states Ollama 0.6 or later is required. (Retrieved 2026-10-28.)
 
-**Critical distinction:** these numbers are Ollama-displayed model package sizes, not measured GPU VRAM requirements. The retrieved official Ollama pages do not publish source-matched VRAM peaks or latency figures (cold start, time-to-first-token, tokens/s, or image-processing latency) with a stated GPU, quantization, context and image resolution for these models. Therefore:
+**Critical distinction:** these numbers are Ollama-displayed model package sizes, not measured GPU VRAM requirements. The retrieved official Ollama pages do not publish source-matched VRAM peaks or latency figures (cold start, time-to-first-token, tokens/s, or image-processing latency) with a stated GPU, quantization, context and image resolution for the Qwen2.5-VL and Gemma 3 vision variants. The official Qwen2.5 speed benchmark does publish text-only results for Qwen2.5-3B-Instruct on one NVIDIA A100 80GB, batch size 1, CUDA 12.1, PyTorch 2.3.1, Transformers 4.46.0 and FlashAttention 2.5.8: BF16 reports 30.80 tokens/s and 5.95 GB GPU memory at input length 1; at input length 6,144 it reports 32.20 tokens/s and 6.59 GB; at 14,336 it reports 31.72 tokens/s and 7.47 GB; at 30,720 it reports 25.37 tokens/s and 9.30 GB. The same text-only page reports GPTQ-Int4 35.21 tokens/s / 2.06 GB at input length 1 and 23.60 tokens/s / 5.41 GB at input length 30,720. These are text-only Qwen2.5-3B-Instruct figures, not Qwen2.5-VL measurements and not RTX 4060 results. They must not be extrapolated to vision models or the owner's 8 GB GPU. [Qwen2.5 speed benchmark](https://qwen.readthedocs.io/en/v2.5/benchmark/speed_benchmark.html) (retrieved 2026-10-28).
+
+Therefore:
 - Do not call the 3.2 GB / 3.4 GB packages “VRAM fit”.
 - Do not infer that a model will coexist with NitroGen in 8 GB.
 - Do not publish latency figures without a hardware/configuration-matched source.
@@ -111,3 +113,54 @@ All items below were retrieved on **2026-10-28**:
 ## Firecrawl accounting
 
 Successful calls in this research completion batch were charged by Firecrawl; the authenticated balance decreased from 855 to 829 credits during the batch, a net delta of **26 credits**. Some search results reported individual request costs and some scrape responses did not expose a per-call receipt in the returned content. The balance delta is therefore the auditable total; no per-source allocation is claimed. The rejected rate-limit attempts were not treated as successful retrievals.
+
+## 5. Research literature: shared autonomy, accessibility, fast/slow control and evaluation
+
+These are primary research sources, retrieved 2026-10-28. They inform design questions; none validates PR-REX performance or the owner's hardware.
+
+### Generalist pixel-based game agents and evaluation
+
+- **NitroGen: An Open Foundation Model for Generalist Gaming Agents**, Loïc Magne et al., arXiv:2601.02427 (2026): https://arxiv.org/abs/2601.02427. The paper and model card describe a generalist vision-action model trained from gameplay videos. Its own limitations and evaluation scope must be read from the paper; its demonstration is not evidence of PR-REX latency, accessibility benefit, or target-game performance.
+- **BALROG: Benchmarking Agentic LLM and VLM Reasoning On Games**, Davide Paglieri et al., arXiv:2411.13543: https://arxiv.org/abs/2411.13543; OpenReview record: https://openreview.net/forum?id=fp6t3F669F. BALROG evaluates long-horizon agentic reasoning across games. It is relevant to separating task progress from a single successful action or demo; it does not validate a controller companion.
+
+### Shared autonomy and control arbitration
+
+- **Toward Zero-Shot User Intent Recognition in Shared Autonomy**, Atharv Belsare, Zohre Karimi, Connor Mattson and Daniel S. Brown, accepted to HRI 2025, arXiv:2501.08389: https://arxiv.org/abs/2501.08389. The paper studies user-intent recognition for shared autonomy. It supports treating inferred intent as uncertain rather than silently equating inference with user command. It is robotics research, not a game-controller implementation.
+
+### Motor accessibility and assisted play
+
+- **Shared Control for Game Accessibility: Understanding Current Human Cooperation Practices to Inform the Design of Partial Automation Solutions**, Dragan Ahmetovic, Matteo Manzoni, Filippo Corti and Sergio Mascetti, arXiv:2509.02132: https://arxiv.org/abs/2509.02132; ACM DOI: https://doi.org/10.1145/3772318.3791080.
+- **Video Game Accessibility through Shared Control for People with Upper-Limb Impairments**, Dragan Ahmetovic, Matteo Manzoni, Filippo Corti and Sergio Mascetti, arXiv:2601.11218: https://arxiv.org/abs/2601.11218.
+
+These are directly relevant to player-controlled partial automation and assistive co-play. They are research evidence about user practices/design, not a blanket authorization to add input modalities or autonomy features. Preserve the project rule that player override remains authoritative.
+
+### Fast/slow supervisory and reflex architectures
+
+- **Fast-in-Slow: A Dual-System Foundation Model Unifying Fast Manipulation within Slow Reasoning**, Hao Chen et al., arXiv:2506.01953: https://arxiv.org/abs/2506.01953; OpenReview: https://openreview.net/forum?id=4asFznbzJg. The OpenReview abstract reports 117.7 Hz control on an NVIDIA RTX 4090 with action chunk size 8. This is the paper's robotic manipulation result on its stated hardware, not a PR-REX or RTX 4060 benchmark.
+- **Asynchronous Fast-Slow Vision-Language-Action Policies for Whole-Body Robotic Manipulation**, Teqiang Zou et al., arXiv:2512.20188: https://arxiv.org/abs/2512.20188. The paper describes an asynchronous slow semantic VLM path and faster action path. It is a useful architecture reference for non-blocking supervisory work, not a measured guarantee for this repository.
+
+### Accessibility guidelines
+
+- Xbox Accessibility Guidelines: https://learn.microsoft.com/gaming/accessibility/xbox-accessibility-guidelines/
+- Game Accessibility Guidelines: https://gameaccessibilityguidelines.com/
+- AbleGamers Player Panels: https://ablegamers.org/player-panels/
+
+These guidelines are design/checklist references, not peer-reviewed performance studies. Apply them to remapping clarity, adjustable assistance, interruption and player-paced control; do not claim conformance without an actual UI/behavior audit.
+
+## 6. Additional sources retrieved 2026-10-28
+
+- NitroGen model code and token order: https://github.com/MineDojo/NitroGen/blob/main/nitrogen/shared.py
+- NitroGen session and context/downsample settings: https://github.com/MineDojo/NitroGen/blob/main/nitrogen/inference_session.py
+- NitroGen play preprocessing and action dispatch: https://github.com/MineDojo/NitroGen/blob/main/scripts/play.py
+- NitroGen server wildcard bind and pickle request handling: https://github.com/MineDojo/NitroGen/blob/main/scripts/serve.py
+- Qwen2.5 text-only speed benchmark: https://qwen.readthedocs.io/en/v2.5/benchmark/speed_benchmark.html
+- Shared autonomy HRI paper: https://arxiv.org/abs/2501.08389
+- Shared control game accessibility paper: https://arxiv.org/abs/2509.02132
+- Upper-limb impairment shared-control paper: https://arxiv.org/abs/2601.11218
+- Fast-in-Slow dual-system paper: https://arxiv.org/abs/2506.01953
+- Asynchronous fast/slow VLA paper: https://arxiv.org/abs/2512.20188
+- BALROG benchmark: https://arxiv.org/abs/2411.13543
+
+## Research status
+
+**PARTIALLY VERIFIED.** Driver lifecycle, official HidHide caveats, NitroGen transport/token contract, the NVIDIA non-commercial license and the available model benchmark boundaries are sourced. No published, hardware/configuration-matched VRAM or latency result for the Ollama vision variants was found. No target-hardware model or driver run was performed. The literature sources are primary citations, but this is a focused source pass rather than a systematic review.

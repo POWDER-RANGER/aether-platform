@@ -123,7 +123,7 @@ def scenario_report(
                 runs.append(record)
     grouped = {}
     for mode in ("research", "companion"):
-        selected = [run for run in runs if run.get("mode") == mode]
+        selected = [run for run in runs if run.get("mode") == mode and not run.get("screening")]
         grouped[mode] = {
             "count": len(selected),
             "raw_values": [

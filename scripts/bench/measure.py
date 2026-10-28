@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import sys
 
 from aether.cli_ext import main

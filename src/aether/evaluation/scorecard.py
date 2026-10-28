@@ -20,7 +20,7 @@ class Criterion:
     id: str
     title: str
     measure: str
-    proposed_threshold: str
+    proposed_threshold: str  # NOT FROZEN
     min_runs: int = 10
 
 

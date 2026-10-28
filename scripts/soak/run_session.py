@@ -183,7 +183,7 @@ def main(argv=None) -> int:
         for _ in range(args.repeat)
     ]
     summary = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "git_rev": _git_revision(),
         "repeat": args.repeat,
         "classifications": {
@@ -192,7 +192,7 @@ def main(argv=None) -> int:
         },
         "runs": results,
     }
-    summary_path = args.evidence_root / f"summary-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}.json"
+    summary_path = args.evidence_root / f"summary-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}.json"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps({**summary, "summary_path": str(summary_path)}, indent=2))

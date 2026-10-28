@@ -125,6 +125,9 @@ def main(argv=None) -> int:
 
 def _companion(a) -> int:
     """End-to-end wiring. REFINE: key loading (control.settings), Governor process start, player goal UI, clean shutdown."""
+    import faulthandler
+    import os
+    import time
     from pathlib import Path
 
     from aether.capture.source import DxcamSource
@@ -149,7 +152,17 @@ def _companion(a) -> int:
         backends={"reflex": reflex.name, "supervisor": sup.name},
         settings_sha256=st.sha256(),
     )
-    rec = RecordingSession(st.recording.root, ident, bus, st.recording.frame_every_n, st.recording.jpeg_quality)
+    ident.run_id = os.environ.get("AETHER_SOAK_RUN_ID", ident.run_id)
+    recording_root = os.environ.get("AETHER_RECORDING_ROOT", st.recording.root)
+    rec = RecordingSession(recording_root, ident, bus, st.recording.frame_every_n, st.recording.jpeg_quality)
+    heartbeat_path = Path(os.environ["AETHER_HEARTBEAT_PATH"]) if os.environ.get("AETHER_HEARTBEAT_PATH") else None
+    dump_request = Path(os.environ["AETHER_DUMP_REQUEST"]) if os.environ.get("AETHER_DUMP_REQUEST") else None
+    fault_handle = None
+    if os.environ.get("AETHER_FAULTHANDLER_PATH"):
+        fault_path = Path(os.environ["AETHER_FAULTHANDLER_PATH"])
+        fault_path.parent.mkdir(parents=True, exist_ok=True)
+        fault_handle = fault_path.open("a", encoding="utf-8")
+        faulthandler.enable(file=fault_handle, all_threads=True)
     buf = FrameBuffer(int(st.capture.target_fps * st.capture.buffer_seconds))
     perc = PerceptionPipeline(bus, st.perception.rois, st.perception.readers)
     planner = Planner()
@@ -178,6 +191,16 @@ def _companion(a) -> int:
         import time
 
         while True:
+            if heartbeat_path:
+                heartbeat_path.parent.mkdir(parents=True, exist_ok=True)
+                heartbeat_path.write_text(
+                    json.dumps({"t_wall": time.time(), "t_mono": time.monotonic()}), encoding="utf-8"
+                )
+            if dump_request and dump_request.exists() and fault_handle:
+                faulthandler.dump_traceback_later(0.1, repeat=False, file=fault_handle)
+                time.sleep(0.2)
+                faulthandler.cancel_dump_traceback_later()
+                dump_request.unlink(missing_ok=True)
             time.sleep(1)
     except KeyboardInterrupt:
         pass
@@ -185,6 +208,9 @@ def _companion(a) -> int:
         rt.stop()
         rec.stop()
         client.close()
+        if fault_handle:
+            faulthandler.cancel_dump_traceback_later()
+            fault_handle.close()
     return 0
 
 

@@ -9,9 +9,9 @@ import pytest
 
 from aether.perception.frame_buffer import Frame, FrameBuffer
 from aether.perception.preprocess import frame_change, reflex_view, roi_crop
+from aether.perception.pipeline import PerceptionPipeline
 from aether.perception.readers import BarReader, OcrReader, TemplateReader, build_reader
 from aether.perception.world_state import Fact, WorldState
-from aether.perception.pipeline import PerceptionPipeline
 from aether.runtime.events import EventBus
 
 

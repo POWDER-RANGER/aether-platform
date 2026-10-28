@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import sys
-import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -19,7 +18,6 @@ from prrex.backends.base import (
     SupervisorOutput,
     make_reflex,
     make_supervisor,
-    register_reflex,
 )
 from prrex.runtime import ReflexLoop, SupervisorLoop
 from prrex.supervisor.planner import Planner, eval_check

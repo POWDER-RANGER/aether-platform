@@ -53,3 +53,8 @@ Link `interfaces/shared/design/tokens.css`, then `components.css`; put `class="a
 ## License
 
 MIT for Æther's own code (`LICENSE`). Third-party components keep their own licenses; see `THIRD-PARTY.md`. NitroGen, the current reflex backend, is licensed for non-commercial research only and is not included here.
+
+
+## Implementation evidence boundary (2026-10-28)
+
+The runtime, perception, recording, supervisor, scorecard and Command Center scaffolding proposed in [draft PR #5](https://github.com/POWDER-RANGER/aether-platform/pull/5) is not part of `main` and is not verified. See [the dated repository inventory](docs/research/2026-10-28-inventory-and-evidence.md) for a subsystem-by-subsystem classification. Do not treat a draft PR, successful syntax compilation, or a passing unit test as hardware verification.

@@ -27,6 +27,8 @@ class CommandCenter:
         host="127.0.0.1",
         port=8765,
     ):
+        if host != "127.0.0.1":
+            raise ValueError("Command Center must bind to 127.0.0.1")
         self.bus, self.runtime, self.runs_root, self.ledger = bus, runtime, Path(runs_root), ledger
         self.recent: deque = deque(maxlen=500)
         self.sub = bus.subscribe("*")

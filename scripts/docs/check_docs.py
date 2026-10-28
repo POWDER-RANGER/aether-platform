@@ -62,9 +62,12 @@ def check(root: Path) -> list[str]:
                         if not (root / cited).exists():
                             errors.append(f"{doc.relative_to(root)}: cited table path does not exist: {cited}")
     for path in root.rglob("*"):
-        if not path.is_file() or ".git" in path.parts or ".pytest_tmp" in path.parts:
+        if not path.is_file():
             continue
-        relative = path.relative_to(root).as_posix()
+        relative_path = path.relative_to(root)
+        if ".git" in relative_path.parts or ".pytest_tmp" in relative_path.parts:
+            continue
+        relative = relative_path.as_posix()
         if relative.startswith(("configuration/", "docs/protocols/")) or path.suffix.lower() not in {
             ".md", ".yaml", ".yml", ".json", ".py", ".toml", ".txt"
         }:

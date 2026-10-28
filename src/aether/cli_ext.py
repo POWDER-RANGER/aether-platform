@@ -161,8 +161,13 @@ def main(argv=None) -> int:
             rgb = tuple(int(value) for value in a.rgb.split(","))
         except ValueError as exc:
             raise SystemExit(f"invalid ROI or RGB value: {exc}") from exc
-        if len(roi) != 4 or len(rgb) != 3 or any(value < 0 or value > 255 for value in rgb):
-            raise SystemExit("--roi needs four normalized values and --rgb needs three values in 0..255")
+        if (
+            len(roi) != 4
+            or any(value < 0 or value > 1 for value in roi)
+            or len(rgb) != 3
+            or any(value < 0 or value > 255 for value in rgb)
+        ):
+            raise SystemExit("--roi needs four normalized values in 0..1 and --rgb needs three values in 0..255")
         image = np.asarray(Image.open(a.image).convert("RGB"))
         crop = roi_crop(image, roi)
         fact = BarReader(a.name, rgb).read(crop, __import__("time").monotonic())

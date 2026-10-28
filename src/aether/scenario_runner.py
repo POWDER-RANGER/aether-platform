@@ -4,8 +4,8 @@ import json
 import os
 import subprocess
 import uuid
-from datetime import UTC, datetime
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 from aether.evaluation.scenarios import check_frozen, load_scenarios

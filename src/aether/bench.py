@@ -9,7 +9,7 @@ import subprocess
 import threading
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +40,7 @@ def summarize_samples(samples: list[float]) -> dict[str, float | int | None]:
 
 
 def new_run_id() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
+    return datetime.now(UTC).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:8]
 
 
 def hardware_info() -> dict[str, Any]:
@@ -412,7 +412,7 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
         for path in sorted(streams_dir.glob("*.jsonl")):
             times = []
             try:
-                for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for _line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
                     if line.strip():
                         row = json.loads(line)
                         times.append(float(row["t_mono"]))

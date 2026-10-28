@@ -15,6 +15,18 @@ from .motor import MotorProfile
 from .policy import GovernorConfig
 
 DEFAULT_CONFIG = Path(__file__).with_name("default.yaml")
+SCHEMA_VERSION = 1
+KNOWN_KEYS = {
+    "schema_version", "mode", "endpoint", "tick_hz", "log_dir", "stop_file", "output", "invert_y",
+    "governor", "motor", "kbm",
+    # player-profile keys read by later stages
+    "name", "assist_level", "primary_input", "player_input",
+}  # fmt: skip
+OUTPUTS = ("x360", "ds4", "kbm", "dryrun")
+
+
+class ConfigError(ValueError):
+    """Invalid configuration. Nothing starts on an invalid configuration (fail closed)."""
 
 
 @dataclass
@@ -80,6 +92,7 @@ def load_settings(config_path: str | Path | None = None, profile_path: str | Pat
         profile_name = prof.pop("name", Path(profile_path).stem)
         raw = _merge(raw, prof)
 
+    check_raw(raw)
     gov_fields = {f.name for f in fields(GovernorConfig)}
     gov_raw = raw.get("governor", {}) or {}
     unknown = set(gov_raw) - gov_fields
@@ -104,3 +117,28 @@ def load_settings(config_path: str | Path | None = None, profile_path: str | Pat
         kbm=dict(raw.get("kbm") or {}),
     )
     return s
+
+
+def check_raw(raw: dict) -> None:
+    """Schema checks on the merged YAML before any object is built. Raises ConfigError."""
+    if not isinstance(raw, dict):
+        raise ConfigError("settings must be a mapping")
+    version = raw.get("schema_version", SCHEMA_VERSION)
+    if version != SCHEMA_VERSION:
+        raise ConfigError(f"settings schema_version {version!r} is not supported (expected {SCHEMA_VERSION})")
+    unknown = set(raw) - KNOWN_KEYS
+    if unknown:
+        raise ConfigError(f"unknown settings: {sorted(unknown)}")
+    if "tick_hz" in raw and not (isinstance(raw["tick_hz"], (int, float)) and 1 <= raw["tick_hz"] <= 1000):
+        raise ConfigError(f"tick_hz must be a number in [1, 1000], got {raw['tick_hz']!r}")
+    if "output" in raw and raw["output"] not in OUTPUTS:
+        raise ConfigError(f"output must be one of {OUTPUTS}, got {raw['output']!r}")
+    if "mode" in raw and raw["mode"] not in ("companion", "research"):
+        raise ConfigError(f"mode must be companion or research, got {raw['mode']!r}")
+    if "endpoint" in raw and not (
+        str(raw["endpoint"]).startswith("tcp://127.0.0.1:") or str(raw["endpoint"]).startswith("ipc://")
+    ):
+        raise ConfigError("endpoint must be localhost (tcp://127.0.0.1:<port>) or ipc://")
+    for section in ("governor", "motor", "kbm"):
+        if section in raw and raw[section] is not None and not isinstance(raw[section], dict):
+            raise ConfigError(f"{section} must be a mapping")

@@ -16,12 +16,14 @@ Limits, stated plainly:
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import hmac
 import json
 import os
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -47,10 +49,17 @@ class IntentLog:
             self._prev, self._count = last, n
         self._lock = threading.Lock()
         self._fh = self.path.open("a", encoding="utf-8")
+        self._observers: list[Callable[[dict], None]] = []
+        self.observer_errors = 0
 
     @property
     def count(self) -> int:
         return self._count
+
+    def add_observer(self, fn: Callable[[dict], None]) -> None:
+        """Read-only hook: fn receives a copy of each record after it is written. It runs outside the log lock,
+        cannot change the record or the caller's decision, and its exceptions are swallowed and counted."""
+        self._observers.append(fn)
 
     def append(self, kind: str, **fields: Any) -> str:
         """Thread-safe: the kill-switch hotkey thread writes here too."""
@@ -65,7 +74,12 @@ class IntentLog:
             self._fh.flush()
             self._prev = h
             self._count += 1
-            return h
+        for fn in self._observers:
+            try:
+                fn(copy.deepcopy(record))
+            except Exception:  # an observer must never affect the Governor
+                self.observer_errors += 1
+        return h
 
     def seal(self, key: bytes) -> Path:
         with self._lock:

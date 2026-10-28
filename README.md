@@ -18,7 +18,8 @@ Full build status with evidence: `docs/STATUS.md`.
 | AACP | Proposed specification |
 | Control foundation (`aether.control`): signed intent, Governor, hash-chained log, motor model, virtual pads | Ported in M1; see `docs/verification/M1-CONTROL.md` |
 | Keyboard/mouse output (`aether.control.kbm`) | M1.1; see `docs/verification/M1.1-KEYBOARD-MOUSE.md` |
-| Platform runtime (agents, tasks, policy engine, events), PR-REX perception and intelligence | NOT IMPLEMENTED |
+| Runtime slice 1 (`aether.runtime`): settings schema, events, agents, tasks, Governor observation, receipts | See `docs/architecture/RUNTIME.md` |
+| PR-REX perception and intelligence, recording, application interface | NOT IMPLEMENTED |
 
 ## Layout (directories appear when their first file does)
 

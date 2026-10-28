@@ -11,8 +11,8 @@ from aether.perception.pipeline import PerceptionPipeline
 from aether.perception.preprocess import roi_crop
 from aether.perception.readers import BarReader
 from aether.recording.session import RecordingSession
-from aether.runtime.events import EventBus
 from aether.runtime.identity import RunIdentity
+from aether.runtime.topics import TopicBus
 from aether.sim.scene import SyntheticScene
 from aether.sim.source import SyntheticSource
 from prrex.backends.base import NullReflex, NullSupervisor, Subgoal, SupervisorOutput
@@ -64,7 +64,7 @@ def test_scene_is_deterministic_and_health_schedule_is_readable():
 
 
 def run_pipeline(tmp_path, supervisor_backend):
-    bus, buffer = EventBus(), FrameBuffer(512)
+    bus, buffer = TopicBus(), FrameBuffer(512)
     identity = RunIdentity(run_id="headless-" + supervisor_backend.name.replace("-", "_"))
     recording = RecordingSession(tmp_path, identity, bus, frame_every_n=2)
     recording.start()

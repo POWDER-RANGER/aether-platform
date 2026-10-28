@@ -8,9 +8,9 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 | --- | --- |
 | Repository | `POWDER-RANGER/aether-platform`, public, MIT (`LICENSE`); third-party terms in `THIRD-PARTY.md` (NitroGen: NVIDIA non-commercial research only, never committed) |
 | Reference | `POWDER-RANGER/powder-ranger-bot`: retired, read-only; ported from `ad15296`; never modified |
-| `main` | `939f8bd` foundation → `0fc63c2` PR #1 hygiene → `4ab4390` PR #2 control foundation (all merged) |
+| `main` | `939f8bd` foundation → `0fc63c2` PR #1 → `4ab4390` PR #2 → `ea25d12` PR #3 (all merged; CI green on each) |
 | PR #2 `m1/control-foundation` | Merged as `4ab4390` (squash). Reviewed by the second AI agent (approved; findings 1–5 fixed; flaky-test fix) |
-| PR #3 `m1.1/keyboard-mouse` → `main` | Review findings 1–2 (focus invariant) fixed with regression tests; merged per D-022 when CI passes on `main` |
+| PR #3 `m1.1/keyboard-mouse` | Merged as `ea25d12` (squash), review findings 1–2 fixed first |
 | CI | GitHub Actions: Ubuntu + Windows × Python 3.11 + 3.13: install, token check, pytest, ruff check, ruff format |
 | Repository protections | Secret scanning, push protection, Dependabot security updates on. Branch protection for `main` proposed (D-017), not applied |
 
@@ -37,8 +37,9 @@ Snapshot 2026-10-26. Living document: update it with every merged milestone. Sta
 | Input reaching a real game (pad or keyboard/mouse) | UNVERIFIED | No game run in this repository |
 | NitroGen reflex backend | Ported; UNVERIFIED here | Reference: 225 ms/chunk synthetic, play quality poor |
 | Capture (dxcam) | Ported; UNVERIFIED here | Reference: 3.3 ms median |
-| Platform runtime: agent identity/lifecycle, config schema, tasks, policy engine, events | NOT IMPLEMENTED | — |
-| AACP runtime records | NOT IMPLEMENTED (protocol proposed) | `protocols/aacp/specification/AACP.md` |
+| Runtime slice 1: versioned settings, event bus, agent identity/lifecycle, tasks, Governor observation, work receipts | Implemented on `runtime/slice-1` (PR #4); CI verified once merged | `docs/architecture/RUNTIME.md`, `tests/runtime/` |
+| Policy engine beyond the Governor, task retries/dependencies, event replay across restarts | NOT IMPLEMENTED | — |
+| AACP runtime records | PARTIAL: work receipts (`runtime/evidence.py`); session records and handoffs not yet | `protocols/aacp/specification/AACP.md` |
 | Resource and model management, capability registry | NOT IMPLEMENTED | — |
 | Perception, world state, supervision, planning | NOT IMPLEMENTED | — |
 | Recording and replay, scorecards (E-01 – E-10), scenarios (SCN, DG) | NOT IMPLEMENTED | — |

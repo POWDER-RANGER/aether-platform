@@ -10,7 +10,7 @@ import pytest
 from aether.perception.frame_buffer import Frame, FrameBuffer
 from aether.perception.pipeline import PerceptionPipeline
 from aether.perception.world_state import Fact, WorldState
-from aether.runtime.events import EventBus
+from aether.runtime.topics import TopicBus
 from prrex.backends.base import (
     NullReflex,
     NullSupervisor,
@@ -121,7 +121,7 @@ class FakeGovernor:
 
 
 def test_reflex_loop_sends_ceil_horizon_and_publishes_event() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     events = bus.subscribe("reflex.chunk")
     buf = FrameBuffer()
     # Synthetic image; no screen capture is involved in this unit test.
@@ -142,7 +142,7 @@ def test_supervisor_loop_does_nothing_when_plan_is_active() -> None:
         def assess(self, *args):
             raise AssertionError("active plan must not trigger supervisor")
 
-    bus = EventBus()
+    bus = TopicBus()
     buf = FrameBuffer()
     buf.push(1.0, np.zeros((8, 8, 3), dtype=np.uint8), source="synthetic")
     planner = Planner()

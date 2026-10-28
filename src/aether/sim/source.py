@@ -5,8 +5,8 @@ from __future__ import annotations
 import time
 
 from aether.perception.frame_buffer import FrameBuffer
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import ThreadedComponent
+from aether.runtime.topics import TopicBus
 
 from .scene import SyntheticScene
 
@@ -14,7 +14,7 @@ from .scene import SyntheticScene
 class SyntheticSource(ThreadedComponent):
     name = "capture.synthetic"
 
-    def __init__(self, bus: EventBus, buf: FrameBuffer, fps: float = 30.0, seed: int = 7):
+    def __init__(self, bus: TopicBus, buf: FrameBuffer, fps: float = 30.0, seed: int = 7):
         if fps <= 0:
             raise ValueError("fps must be positive")
         super().__init__(bus)

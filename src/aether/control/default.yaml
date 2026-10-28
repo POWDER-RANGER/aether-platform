@@ -1,6 +1,7 @@
 # Æther control - default settings. A profile (configuration/profiles/*.yaml)
 # overrides any of these.
 
+schema_version: 1                # settings format version; other versions are refused
 mode: companion             # companion | research (see configuration/profiles/research.yaml)
 endpoint: tcp://127.0.0.1:5577   # Governor channel; localhost only
 tick_hz: 120                     # controller update rate

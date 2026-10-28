@@ -11,8 +11,8 @@ from pathlib import Path
 
 from aether.evaluation.scorecard import SCORECARD, Ledger
 from aether.recording.replay import list_runs, merged, summarize
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import Runtime
+from aether.runtime.topics import TopicBus
 
 REPO = Path(__file__).resolve().parents[3]
 
@@ -20,7 +20,7 @@ REPO = Path(__file__).resolve().parents[3]
 class CommandCenter:
     def __init__(
         self,
-        bus: EventBus,
+        bus: TopicBus,
         runtime: Runtime | None,
         runs_root: str | Path,
         ledger: Ledger,

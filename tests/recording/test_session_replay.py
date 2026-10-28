@@ -7,12 +7,12 @@ import pytest
 
 from aether.recording.replay import list_runs, merged, summarize
 from aether.recording.session import RecordingSession
-from aether.runtime.events import EventBus
 from aether.runtime.identity import RunIdentity
+from aether.runtime.topics import TopicBus
 
 
 def test_recording_layout_manifest_sampling_and_stop(tmp_path) -> None:
-    bus = EventBus()
+    bus = TopicBus()
     session = RecordingSession(tmp_path, RunIdentity(run_id="synthetic-run"), bus, frame_every_n=2)
     session.start()
     session.record("intended", 1.0, action="synthetic")

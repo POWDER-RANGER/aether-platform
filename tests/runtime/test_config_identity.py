@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from dataclasses import asdict
 
 import pytest
 import yaml
@@ -32,7 +33,7 @@ def test_defaults_and_environment_files_load() -> None:
     ],
 )
 def test_unknown_top_level_and_nested_keys_rejected(tmp_path, mutate) -> None:
-    data = PlatformSettings().__dict__.copy()
+    data = asdict(PlatformSettings())
     data["capture"] = {"process_name": ""}
     mutate(data)
     with pytest.raises(ConfigError, match="unknown keys"):

@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- DRAFT 2026-10-28: read-only Command Center. Shows only what the runtime reports; empty states say so. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Æther Command Center</title>
+<link rel="stylesheet" href="/design/tokens.css"><link rel="stylesheet" href="/design/components.css">
+<style>
+body{margin:0;padding:16px;font-family:system-ui,sans-serif;background:var(--color-bg,#0d0f12);color:var(--color-fg,#e8e8e8)}
+h1{font-size:1.4rem;margin:0 0 12px} section{margin:0 0 20px} table{border-collapse:collapse;width:100%;font-size:.85rem}
+td,th{border-bottom:1px solid #333;padding:4px 6px;text-align:left;vertical-align:top} .empty{opacity:.6;font-style:italic}
+.st-VERIFIED{color:#4caf50}.st-FAILED{color:#f44336}.st-BLOCKED{color:#ff9800}.st-UNVERIFIED,.st-NOT{color:#9e9e9e}
+pre{white-space:pre-wrap;font-size:.75rem;max-height:40vh;overflow:auto}
+</style></head><body>
+<h1>Æther — Command Center <small>(read-only)</small></h1>
+<section><h2>Runtime health</h2><div id="health" class="empty">loading…</div></section>
+<section><h2>Engineering scorecard E-01 – E-10</h2><table id="score"></table></section>
+<section><h2>Recordings</h2><table id="runs"></table></section>
+<section><h2>Live events</h2><pre id="events" class="empty">no events yet</pre></section>
+<script>
+const j=u=>fetch(u).then(r=>r.json());
+function esc(s){return String(s??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+async function tick(){
+ try{const h=await j('/api/health');const k=Object.keys(h);
+  document.getElementById('health').innerHTML=k.length?'<table>'+k.map(n=>`<tr><td>${esc(n)}</td><td>${esc(h[n].state)}</td><td>${esc(h[n].error||'')}</td></tr>`).join('')+'</table>':'<span class="empty">no runtime attached</span>';}catch(e){}
+ try{const s=await j('/api/scorecard');document.getElementById('score').innerHTML='<tr><th>ID</th><th>Criterion</th><th>Status</th><th>Value</th><th>Evidence</th></tr>'+Object.values(s).map(r=>`<tr><td>${esc(r.criterion)}</td><td>${esc(r.title)}</td><td class="st-${esc(r.status).split(' ')[0]}">${esc(r.status)}</td><td>${esc(r.value)}</td><td>${esc(r.evidence)}</td></tr>`).join('');}catch(e){}
+ try{const r=await j('/api/runs');document.getElementById('runs').innerHTML=r.length?'<tr><th>Run</th><th>Mode</th><th>Env</th><th>Scenario</th><th>Git</th></tr>'+r.map(x=>{const i=x.identity||{};return `<tr><td>${esc(i.run_id||x.dir)}</td><td>${esc(i.mode)}</td><td>${esc(i.environment)}</td><td>${esc(i.scenario)}</td><td>${esc((i.git_rev||'').slice(0,7))}${i.git_dirty?'*':''}</td></tr>`}).join(''):'<tr><td class="empty">no recordings</td></tr>';}catch(e){}
+ try{const ev=await j('/api/events');const p=document.getElementById('events');if(ev.length){p.classList.remove('empty');p.textContent=ev.slice(-60).map(e=>`${e.seq} ${e.topic} ${JSON.stringify(Object.fromEntries(Object.entries(e).filter(([k])=>!['seq','topic','t_mono','t_wall'].includes(k))))}`).join('\n');}}catch(e){}
+}
+tick();setInterval(tick,1000);
+</script></body></html>

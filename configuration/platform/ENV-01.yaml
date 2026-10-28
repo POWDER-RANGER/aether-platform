@@ -1,0 +1,17 @@
+# DRAFT 2026-10-28: platform settings for ENV-01 (engineering/control environment). Fill process_name locally.
+schema_version: 1
+mode: research
+environment: ENV-01
+governor_endpoint: tcp://127.0.0.1:5560
+capture: {process_name: "", target_fps: 60, buffer_seconds: 2.0, reflex_size: 256}
+perception:
+  rois: {}
+  readers: {}
+backends:
+  reflex: "null"
+  supervisor: "null"
+  chunk_len: 16
+  execute_fraction: 0.5
+  supervisor_period_s: 2.0
+recording: {root: runs, frame_every_n: 6, jpeg_quality: 85}
+server: {host: 127.0.0.1, port: 8765}

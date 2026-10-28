@@ -1,0 +1,24 @@
+# DRAFT 2026-10-28. Thresholds not frozen. Neutral identifiers only.
+id: SCN-03
+title: Stealth-oriented objective, standard difficulty
+kind: formal
+environment: ENV-02
+modes:
+- research
+- companion
+setup: Owner-prepared save, standard difficulty.
+success:
+- Objective completed
+- Detections <= threshold
+failure:
+- Objective failed
+- Mission-level failure
+metrics:
+- completed
+- detections
+- time_s
+- interventions
+thresholds:
+  _status: PROPOSED - owner freezes before formal testing
+runs_required: 10
+time_limit_s: 900

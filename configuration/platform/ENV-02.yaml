@@ -1,0 +1,25 @@
+# DRAFT 2026-10-28: ENV-02 (complex gameplay intelligence environment). ROIs/readers are placeholders to calibrate
+# on owner-controlled recordings; names are neutral. Supervisor model must fit 8 GB VRAM alongside the reflex backend.
+schema_version: 1
+mode: research
+environment: ENV-02
+governor_endpoint: tcp://127.0.0.1:5560
+capture: {process_name: "", target_fps: 60, buffer_seconds: 3.0, reflex_size: 256}
+perception:
+  rois:
+    health_bar: [0.02, 0.92, 0.25, 0.95]
+    minimap: [0.80, 0.70, 0.98, 0.97]
+    objective_text: [0.30, 0.02, 0.70, 0.08]
+    alert_indicator: [0.45, 0.10, 0.55, 0.20]
+  readers:
+    health_bar: {type: bar, rgb: [200, 200, 200], tol: 50}
+    objective_text: {type: ocr, psm: 7}
+backends:
+  reflex: nitrogen
+  supervisor: ollama
+  supervisor_options: {model: "qwen2.5vl:3b"}
+  chunk_len: 16
+  execute_fraction: 0.5
+  supervisor_period_s: 3.0
+recording: {root: runs, frame_every_n: 6, jpeg_quality: 85}
+server: {host: 127.0.0.1, port: 8765}

@@ -1,0 +1,24 @@
+# DRAFT 2026-10-28. Thresholds not frozen. Neutral identifiers only.
+id: SCN-02
+title: Objective progression
+kind: formal
+environment: ENV-02
+modes:
+- research
+- companion
+setup: Owner-prepared save with one active objective.
+success:
+- Measurable progress toward objective within time limit (owner-defined checkpoint
+  reached)
+failure:
+- No progress in time limit
+- Player-avoidable failure state
+metrics:
+- checkpoint_reached
+- time_to_checkpoint_s
+- recoveries
+- interventions
+thresholds:
+  _status: PROPOSED - owner freezes before formal testing
+runs_required: 10
+time_limit_s: 900

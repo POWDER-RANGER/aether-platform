@@ -38,7 +38,12 @@ def eval_check(check: str | None, ws: WorldState) -> bool | None:
                 pass
             a = f.value
             numeric = (int, float)
-            both_numeric = isinstance(a, numeric) and not isinstance(a, bool) and isinstance(lit, numeric) and not isinstance(lit, bool)
+            both_numeric = (
+                isinstance(a, numeric)
+                and not isinstance(a, bool)
+                and isinstance(lit, numeric)
+                and not isinstance(lit, bool)
+            )
             if type(a) is not type(lit) and not both_numeric:
                 return None
             try:

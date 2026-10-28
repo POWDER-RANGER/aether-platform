@@ -12,7 +12,7 @@ from aether.perception.pipeline import PerceptionPipeline
 from aether.perception.preprocess import frame_change, reflex_view, roi_crop
 from aether.perception.readers import BarReader, OcrReader, TemplateReader, build_reader
 from aether.perception.world_state import Fact, WorldState
-from aether.runtime.events import EventBus
+from aether.runtime.topics import TopicBus
 
 
 def synthetic_frame(fill: float = 0.5) -> np.ndarray:
@@ -99,7 +99,7 @@ def test_build_reader_rejects_unknown_type() -> None:
 
 
 def test_pipeline_updates_world_state_and_publishes_each_fact() -> None:
-    bus = EventBus()
+    bus = TopicBus()
     events = bus.subscribe("perception.fact")
     pipeline = PerceptionPipeline(
         bus,

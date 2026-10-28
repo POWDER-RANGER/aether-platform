@@ -17,15 +17,15 @@ from pathlib import Path
 
 import numpy as np
 
-from aether.runtime.events import EventBus, JsonlSink
 from aether.runtime.identity import RunIdentity
+from aether.runtime.topics import JsonlSink, TopicBus
 
 STREAMS = ("intended", "commanded", "delivered", "observed", "player_input")
 
 
 class RecordingSession:
     def __init__(
-        self, root: str | Path, identity: RunIdentity, bus: EventBus, frame_every_n: int = 6, jpeg_quality: int = 85
+        self, root: str | Path, identity: RunIdentity, bus: TopicBus, frame_every_n: int = 6, jpeg_quality: int = 85
     ):
         self.identity = identity
         self.dir = Path(root) / identity.run_id

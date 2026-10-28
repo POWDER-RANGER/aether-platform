@@ -44,3 +44,17 @@ def test_index_read_only(tmp_path):
     result = build(tmp_path)
     assert "r1" in result and "VERIFIED" in result
     assert path.read_bytes() == before
+
+
+def test_index_derives_run_id_from_manifest_and_evidence_path(tmp_path):
+    path = tmp_path / "evidence" / "SCN-02" / "run-02" / "stdout.txt"
+    path.parent.mkdir(parents=True)
+    path.write_text("synthetic log")
+    direct = tmp_path / "evidence" / "E-10" / "run-10.json"
+    direct.parent.mkdir(parents=True)
+    direct.write_text("{}")
+    result = build(tmp_path)
+    assert "run-02" in result
+    assert "run-10" in result
+    assert "SCN-02" in result
+    assert "E-10" in result

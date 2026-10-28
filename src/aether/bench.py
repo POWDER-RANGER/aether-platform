@@ -390,6 +390,7 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
             manifest = {}
 
     stream_results = {}
+    stream_samples = {}
     streams_dir = run / "streams"
     if streams_dir.is_dir():
         expected_streams = manifest.get("streams", []) if isinstance(manifest, dict) else []
@@ -405,6 +406,7 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
                         times.append(float(row["t_mono"]))
             except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
                 failures.append(f"{path.name} invalid: {exc}")
+            stream_samples[path.stem] = times
             monotonic = all(right >= left for left, right in zip(times, times[1:]))
             if not monotonic:
                 failures.append(f"{path.name} timestamps are not monotonic")
@@ -458,8 +460,8 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
         failures.append("events.jsonl missing")
 
     verdict = {
-        "run_id": run_id,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        **_base_record("E-10 verify-run", run_id),
+        "raw_samples": {"stream_t_mono": stream_samples, "frame_t_mono": frame_times if "frame_times" in locals() else []},
         "status": "VERIFIED" if not failures else "FAILED",
         "manifest_present": manifest_path.is_file(),
         "streams": stream_results,

@@ -79,7 +79,9 @@ def test_planner_success_and_timeout_use_injected_clock() -> None:
     planner = Planner(clock=lambda: now[0])
     state = WorldState()
     state.set("done", Fact(True, 1.0, 10.0, "synthetic"))
-    assert planner.apply(SupervisorOutput(None, None, [Subgoal("one", "done == True"), Subgoal("two")], "", 1, 0, "test"))
+    assert planner.apply(
+        SupervisorOutput(None, None, [Subgoal("one", "done == True"), Subgoal("two")], "", 1, 0, "test")
+    )
     assert planner.step(state) == "two"
     now[0] = 20.0
     timed = Planner(clock=lambda: now[0])

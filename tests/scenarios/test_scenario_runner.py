@@ -55,8 +55,14 @@ def test_report_keeps_research_and_companion_separate(tmp_path) -> None:
                         "metrics": {"metric": value}, "outcome": "UNVERIFIED"}),
             encoding="utf-8",
         )
+    (directory / "screening.json").write_text(
+        json.dumps({"scenario": "SCN-01", "mode": "research", "run_id": "screen",
+                    "screening": True, "metrics": {"metric": "screen-value"}, "outcome": "screening"}),
+        encoding="utf-8",
+    )
     report = scenario_report("SCN-01", tmp_path)
     assert report["research"]["count"] == 1
+    assert report["screening_count"] == 1
     assert report["companion"]["count"] == 1
     assert report["research"]["raw_values"][0]["metrics"]["metric"] == "raw-r"
     assert "No pass/fail" in report["note"]

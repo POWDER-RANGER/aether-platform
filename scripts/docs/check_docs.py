@@ -30,8 +30,13 @@ def check(root:Path):
    header=block[0].lower()
    if 'requested file' in header:continue
    cells=[c.strip().lower() for c in block[0].strip('|').split('|')]
+   status_columns=[n for n,c in enumerate(cells) if c=='status']
+   if doc.relative_to(root).as_posix()!='docs/decisions/DECISIONS.md':
+    for row in block[2:]:
+     values=[c.strip().strip('*_').upper() for c in row.strip('|').split('|')]
+     for col in status_columns:
+      if col<len(values) and values[col] and values[col] not in LABELS:errors.append(f'{doc.relative_to(root)}: invalid table status label {values[col]!r}')
    columns=[n for n,c in enumerate(cells) if c in {'path','file path','repository path','evidence path'}]
-   if not columns:continue
    for row in block[2:]:
     values=[c.strip() for c in row.strip('|').split('|')]
     for col in columns:

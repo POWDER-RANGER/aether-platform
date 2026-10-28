@@ -1,5 +1,5 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
-"""Engineering scorecard E-01..E-10 (M1). Definitions here are PROPOSED; the owner freezes thresholds (§2, §10). NOT FROZEN
+"""Engineering scorecard E-01..E-10 (M1). Definitions here are PROPOSED; thresholds are NOT FROZEN and require owner approval (§2, §10).
 
 Statuses follow §10 exactly. Results are appended to a JSONL ledger with run_id + evidence path; nothing is
 derived from mock data.
@@ -20,7 +20,7 @@ class Criterion:
     id: str
     title: str
     measure: str
-    proposed_threshold: str NOT FROZEN
+    proposed_threshold: str
     min_runs: int = 10
 
 

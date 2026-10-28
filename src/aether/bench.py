@@ -89,7 +89,7 @@ def _git_revision() -> str:
 def _base_record(tool: str, run_id: str) -> dict:
     return {
         "run_id": run_id,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "tool": tool,
         "git_rev": _git_revision(),
         "hardware": hardware_info(),

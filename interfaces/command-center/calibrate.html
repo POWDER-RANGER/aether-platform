@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ENV-02 ROI calibration</title><link rel="stylesheet" href="/design/tokens.css"><link rel="stylesheet" href="/design/components.css">
+<style>
+body{margin:0;padding:16px;font:14px system-ui,sans-serif;background:var(--color-bg,#101318);color:var(--color-fg,#eee)}
+main{max-width:1100px;margin:auto}nav{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+a{color:var(--color-accent,#83b7ff)}label{display:block;margin:8px 0}input,button,textarea{max-width:100%;padding:8px}
+#stage{position:relative;display:inline-block;max-width:100%;border:1px solid #666}
+canvas{display:block;max-width:100%;height:auto;touch-action:none}
+#snippet{width:100%;min-height:150px;box-sizing:border-box}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+</style></head><body><main>
+<nav><a href="/">Home</a><a href="/scorecard">Scorecard</a><a href="/overlay">Overlay</a></nav>
+<h1>ENV-02 ROI calibration</h1>
+<p>Load a frame from a recorded run or choose a local image. Drag a rectangle, name the ROI, and export a YAML snippet. This page never writes platform configuration.</p>
+<div class="row">
+<label>Run ID<input id="run" placeholder="recorded run id"></label>
+<label>Frame filename<input id="frame" placeholder="00000006.jpg"></label>
+<button id="loadRun">Load recorded frame</button>
+<label>Local image<input id="upload" type="file" accept="image/png,image/jpeg"></label>
+</div>
+<div id="stage"><canvas id="canvas" width="1" height="1"></canvas></div>
+<p id="coords">no ROI selected</p>
+<div class="row"><label>ROI name<input id="name" placeholder="health_bar"></label><button id="save">Save ROI</button><button id="export">Export YAML</button></div>
+<ul id="saved"></ul>
+<textarea id="snippet" readonly placeholder="perception:\n  rois:\n    ..."></textarea>
+<script>
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),coords=document.getElementById('coords');
+let image=null,dragStart=null,current=null,boxes=[];
+function draw(){if(!image)return;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0);for(const b of boxes){ctx.strokeStyle='#00d0ff';ctx.lineWidth=Math.max(2,canvas.width/500);ctx.strokeRect(b.x0*canvas.width,b.y0*canvas.height,(b.x1-b.x0)*canvas.width,(b.y1-b.y0)*canvas.height);}if(current){ctx.strokeStyle='#ffd34e';ctx.lineWidth=Math.max(2,canvas.width/500);ctx.strokeRect(current.x0*canvas.width,current.y0*canvas.height,(current.x1-current.x0)*canvas.width,(current.y1-current.y0)*canvas.height);}}
+function setImage(src){const img=new Image();img.onload=()=>{image=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;boxes=[];current=null;draw();coords.textContent='image loaded; drag to define an ROI';};img.src=src;}
+function point(e){const r=canvas.getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
+canvas.addEventListener('pointerdown',e=>{if(!image)return;canvas.setPointerCapture(e.pointerId);dragStart=point(e);current={x0:dragStart.x,y0:dragStart.y,x1:dragStart.x,y1:dragStart.y};draw();});
+canvas.addEventListener('pointermove',e=>{if(!dragStart)return;const p=point(e);current={x0:Math.min(dragStart.x,p.x),y0:Math.min(dragStart.y,p.y),x1:Math.max(dragStart.x,p.x),y1:Math.max(dragStart.y,p.y)};coords.textContent=JSON.stringify(current);draw();});
+canvas.addEventListener('pointerup',()=>{dragStart=null;if(current)coords.textContent='selected '+JSON.stringify(current);});
+document.getElementById('upload').addEventListener('change',e=>{if(e.target.files[0])setImage(URL.createObjectURL(e.target.files[0]));});
+document.getElementById('loadRun').onclick=()=>{const id=document.getElementById('run').value.trim(),file=document.getElementById('frame').value.trim();if(!id||!file||file.includes('/')||file.includes('..')){coords.textContent='enter a run id and a simple JPEG filename';return;}setImage('/api/runs/'+encodeURIComponent(id)+'/frames/'+encodeURIComponent(file));};
+document.getElementById('save').onclick=()=>{if(!current||current.x1<=current.x0||current.y1<=current.y0){coords.textContent='draw a non-empty ROI first';return;}const name=document.getElementById('name').value.trim();if(!/^[A-Za-z][A-Za-z0-9_-]*$/.test(name)){coords.textContent='use a simple ROI identifier';return;}boxes.push({name,...current});current=null;document.getElementById('saved').innerHTML=boxes.map(b=>'<li>'+b.name+': '+[b.x0,b.y0,b.x1,b.y1].map(v=>v.toFixed(4)).join(', ')+'</li>').join('');draw();};
+document.getElementById('export').onclick=()=>{const lines=['perception:','  rois:'];for(const b of boxes)lines.push('    '+b.name+': ['+[b.x0,b.y0,b.x1,b.y1].map(v=>v.toFixed(6)).join(', ')+']');document.getElementById('snippet').value=lines.join('\n');};
+</script></main></body></html>

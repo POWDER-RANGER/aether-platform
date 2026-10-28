@@ -30,7 +30,7 @@ def check(root:Path):
    header=block[0].lower()
    if 'requested file' in header:continue
    cells=[c.strip().lower() for c in block[0].strip('|').split('|')]
-   status_columns=[n for n,c in enumerate(cells) if c=='status']
+   status_columns=[n for n,c in enumerate(cells) if c in {'evidence status','evidence label'}]
    if doc.relative_to(root).as_posix()!='docs/decisions/DECISIONS.md':
     for row in block[2:]:
      values=[c.strip().strip('*_').upper() for c in row.strip('|').split('|')]

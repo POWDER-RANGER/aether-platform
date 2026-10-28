@@ -24,6 +24,7 @@ windows = [
     "psutil",
 ]
 dev = ["pytest>=8", "ruff>=0.6"]
+perception = ["pytesseract", "opencv-python"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

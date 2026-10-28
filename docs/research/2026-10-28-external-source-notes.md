@@ -67,7 +67,7 @@ Unconfirmed search leads (not cited research sources):
 - Google Scholar search lead: [shared control for assistive robotics](https://scholar.google.com/scholar?q=shared+control+assistive+robotics+human+authority) (retrieved 2026-10-28).
 - Google Scholar search lead: [human-robot shared control and arbitration](https://scholar.google.com/scholar?q=shared+autonomy+control+arbitration+human+authority) (retrieved 2026-10-28).
 
-No specific shared-autonomy paper is cited in this note; a stable primary publication record must be verified before adding one.
+- AgentQuest: unconfirmed lead only; the exact paper URL and publication record were not verified, so it is not cited as a source.\n\nNo specific shared-autonomy paper is cited in this note; a stable primary publication record must be verified before adding one.
 
 The governing design implication is consistent with the project principle: preserve a human's ability to interrupt or take over; make authority transitions explicit; do not conflate inferred intent with confirmed intent; ensure neutral output on stop/fault. This note does not claim a systematic literature review or assert a specific quantitative result.
 

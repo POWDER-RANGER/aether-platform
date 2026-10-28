@@ -35,7 +35,7 @@ def test_command_center_get_routes_and_read_only_surface(tmp_path) -> None:
         response.read()
         assert response.status in (403, 404)
 
-        connection.request("GET", "/api/runs/../secret")
+        connection.request("GET", "/api/runs/..")
         response = connection.getresponse()
         response.read()
         assert response.status in (403, 404)

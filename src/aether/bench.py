@@ -280,7 +280,9 @@ def run_nonblocking(duration_s: float, supervisor_sleep_s: float, root: str | Pa
 
 
 
-def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence") -> dict:
+def run_inference(
+    backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence"
+) -> dict:
     """Measure real local calls with synthetic input; GPU residency is UNVERIFIED until MSI execution."""
     if backend not in {"ollama", "nitrogen"}:
         raise ValueError("backend must be ollama or nitrogen")
@@ -476,7 +478,10 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
 
     verdict = {
         **_base_record("E-10 verify-run", run_id),
-        "raw_samples": {"stream_t_mono": stream_samples, "frame_t_mono": frame_times if "frame_times" in locals() else []},
+        "raw_samples": {
+            "stream_t_mono": stream_samples,
+            "frame_t_mono": frame_times if "frame_times" in locals() else [],
+        },
         "status": "VERIFIED" if not failures else "FAILED",
         "manifest_present": manifest_path.is_file(),
         "streams": stream_results,

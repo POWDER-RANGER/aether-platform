@@ -34,12 +34,27 @@ Check 'pytest importable'  { & $Python -c "import pytest; print(pytest.__version
 $extended = [ordered]@{}
 
 # Read-only inventory. Missing optional components are reported, never installed or changed.
+$driverRows = @()
 $drivers = @(Get-CimInstance Win32_SystemDriver -ErrorAction SilentlyContinue |
-  Where-Object { $_.Name -match 'ViGEm|HidHide' } |
-  Select-Object Name, State, StartMode, PathName)
+  Where-Object { $_.Name -match 'ViGEm|HidHide' })
+foreach ($driver in $drivers) {
+  $driverPath = [string]$driver.PathName
+  $driverPath = $driverPath.Trim('"') -replace '^\\\\SystemRoot', $env:SystemRoot
+  $driverVersion = $null
+  if (Test-Path -LiteralPath $driverPath) {
+    $driverVersion = (Get-Item -LiteralPath $driverPath).VersionInfo.FileVersion
+  }
+  $driverRows += [pscustomobject]@{
+    Name = $driver.Name
+    State = $driver.State
+    StartMode = $driver.StartMode
+    PathName = $driver.PathName
+    FileVersion = $driverVersion
+  }
+}
 $extended['controller_drivers'] = @{
-  ViGEmBus = @($drivers | Where-Object { $_.Name -match 'ViGEm' })
-  HidHide = @($drivers | Where-Object { $_.Name -match 'HidHide' })
+  ViGEmBus = @($driverRows | Where-Object { $_.Name -match 'ViGEm' })
+  HidHide = @($driverRows | Where-Object { $_.Name -match 'HidHide' })
   note = 'Inventory only; no driver installation, removal, or configuration changes.'
 }
 

@@ -11,7 +11,11 @@
         3
       ],
       "health_ratio": 0.999667,
-      "pixel_sum": 5588260
+      "pixel_sum": 5588260,
+      "reader_health": 0.99,
+      "reader_confidence": 0.989899,
+      "planner_accepted": true,
+      "planner_goal": "hold synthetic objective"
     },
     {
       "seq": 30,
@@ -22,7 +26,11 @@
         3
       ],
       "health_ratio": 0.99,
-      "pixel_sum": 5587030
+      "pixel_sum": 5587030,
+      "reader_health": 0.98,
+      "reader_confidence": 0.989796,
+      "planner_accepted": true,
+      "planner_goal": "hold synthetic objective"
     },
     {
       "seq": 60,
@@ -33,7 +41,11 @@
         3
       ],
       "health_ratio": 0.98,
-      "pixel_sum": 5585800
+      "pixel_sum": 5585800,
+      "reader_health": 0.97,
+      "reader_confidence": 0.989691,
+      "planner_accepted": true,
+      "planner_goal": "hold synthetic objective"
     },
     {
       "seq": 90,
@@ -44,7 +56,11 @@
         3
       ],
       "health_ratio": 0.97,
-      "pixel_sum": 5584570
+      "pixel_sum": 5584570,
+      "reader_health": 0.96,
+      "reader_confidence": 0.989583,
+      "planner_accepted": true,
+      "planner_goal": "hold synthetic objective"
     }
   ]
 }

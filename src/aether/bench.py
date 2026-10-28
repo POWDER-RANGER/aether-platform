@@ -392,6 +392,10 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
     stream_results = {}
     streams_dir = run / "streams"
     if streams_dir.is_dir():
+        expected_streams = manifest.get("streams", []) if isinstance(manifest, dict) else []
+        for stream_name in expected_streams:
+            if not (streams_dir / f"{stream_name}.jsonl").is_file():
+                failures.append(f"manifest stream missing: {stream_name}")
         for path in sorted(streams_dir.glob("*.jsonl")):
             times = []
             try:
@@ -423,10 +427,16 @@ def verify_run(run_dir: str | Path, root: str | Path = "evidence") -> dict:
             failures.append(f"frames.jsonl invalid: {exc}")
     else:
         failures.append("frames.jsonl missing")
-    frame_times = [float(row["t_mono"]) for row in indexed if "t_mono" in row]
-    if not all(right >= left for left, right in zip(frame_times, frame_times[1:])):
-        failures.append("frames.jsonl timestamps are not monotonic")
-    indexed_files = {f"{int(row['seq']):08d}.jpg" for row in indexed if "seq" in row}
+    try:
+        frame_times = [float(row["t_mono"]) for row in indexed]
+        if not all(right >= left for left, right in zip(frame_times, frame_times[1:])):
+            failures.append("frames.jsonl timestamps are not monotonic")
+        indexed_files = {f"{int(row['seq']):08d}.jpg" for row in indexed}
+        if len(indexed_files) != len(indexed):
+            failures.append("frames.jsonl contains duplicate sequence numbers")
+    except (KeyError, TypeError, ValueError):
+        failures.append("frames.jsonl rows require numeric t_mono and seq")
+        indexed_files = set()
     disk_files = {path.name for path in frames_dir.glob("*.jpg")} if frames_dir.is_dir() else set()
     if not frames_dir.is_dir():
         failures.append("frames directory missing")

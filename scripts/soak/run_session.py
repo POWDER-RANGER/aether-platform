@@ -139,7 +139,7 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
         "events": str(events_path),
         "recording_present": events_path.is_file(),
     }
-    result_path = work / "session.json"
+    result_path = evidence_root / f"{run_id}.json"
     result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
     result["evidence_path"] = str(result_path)
     return result

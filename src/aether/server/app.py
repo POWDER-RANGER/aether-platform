@@ -186,7 +186,9 @@ rows.map(x=>{const ev=x.evidence?'<a href="/evidence/'+String(x.evidence).replac
                 if path.startswith("/evidence/"):
                     base = Path("evidence").resolve()
                     target = (base / path[len("/evidence/") :]).resolve()
-                    return self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
+                    return (
+                        self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
+                    )
                 parts = path.strip("/").split("/")
                 if len(parts) >= 3 and parts[:2] == ["api", "runs"]:
                     run_id = parts[2]

@@ -26,8 +26,15 @@ def redact_run(run_dir, output_dir, boxes):
                 image = image.convert("RGB")
                 draw = ImageDraw.Draw(image)
                 for x0, y0, x1, y1 in boxes:
-                    draw.rectangle((round(x0 * image.width), round(y0 * image.height),
-                                    round(x1 * image.width), round(y1 * image.height)), fill=(0, 0, 0))
+                    draw.rectangle(
+                        (
+                            round(x0 * image.width),
+                            round(y0 * image.height),
+                            round(x1 * image.width),
+                            round(y1 * image.height),
+                        ),
+                        fill=(0, 0, 0),
+                    )
                 image.save(path, quality=95)
     manifest_path = output / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}

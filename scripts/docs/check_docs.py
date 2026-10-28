@@ -12,7 +12,10 @@ PATH = re.compile(r"\x60((?:src|tests|scripts|docs|configuration|interfaces|evid
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
-    docs = [root / "README.md", *((root / "docs").rglob("*.md") if (root / "docs").exists() else [])]
+    docs = [
+        root / "README.md",
+        *((root / "docs").rglob("*.md") if (root / "docs").exists() else []),
+    ]
     for doc in docs:
         if not doc.is_file():
             continue
@@ -43,14 +46,21 @@ def check(root: Path) -> list[str]:
             cells = [cell.strip().lower() for cell in block[0].strip("|").split("|")]
             if "requested file" in block[0].lower():
                 continue
-            status_columns = [n for n, cell in enumerate(cells) if cell in {"evidence status", "evidence label"}]
+            status_columns = [
+                n for n, cell in enumerate(cells) if cell in {"evidence status", "evidence label"}
+            ]
             if doc.relative_to(root).as_posix() != "docs/decisions/DECISIONS.md":
                 for row in block[2:]:
                     values = [cell.strip().strip("*_").upper() for cell in row.strip("|").split("|")]
                     for column in status_columns:
                         if column < len(values) and values[column] and values[column] not in LABELS:
-                            errors.append(f"{doc.relative_to(root)}: invalid table status label {values[column]!r}")
-            path_columns = [n for n, cell in enumerate(cells) if cell in {"path", "file path", "repository path", "evidence path"}]
+                            errors.append(
+                                f"{doc.relative_to(root)}: invalid table status label {values[column]!r}"
+                            )
+            path_columns = [
+                n for n, cell in enumerate(cells)
+                if cell in {"path", "file path", "repository path", "evidence path"}
+            ]
             for row in block[2:]:
                 values = [cell.strip() for cell in row.strip("|").split("|")]
                 for column in path_columns:
@@ -60,7 +70,9 @@ def check(root: Path) -> list[str]:
                         if any(token in cited for token in ("{", "}", "*", "<", ">", "...")):
                             continue
                         if not (root / cited).exists():
-                            errors.append(f"{doc.relative_to(root)}: cited table path does not exist: {cited}")
+                            errors.append(
+                                f"{doc.relative_to(root)}: cited table path does not exist: {cited}"
+                            )
     for path in root.rglob("*"):
         if not path.is_file():
             continue

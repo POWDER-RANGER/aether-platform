@@ -17,7 +17,11 @@ def build(root: Path) -> str:
             except (OSError, json.JSONDecodeError):
                 data = {}
             parts = path.relative_to(evidence).parts
-            run_id = str(data.get("run_id") or data.get("identity", {}).get("run_id") or (parts[1] if len(parts) >= 3 else (path.stem if len(parts) == 2 else "")))
+            run_id = str(
+                data.get("run_id")
+                or data.get("identity", {}).get("run_id")
+                or (parts[1] if len(parts) >= 3 else (path.stem if len(parts) == 2 else ""))
+            )
             date = str(data.get("timestamp_utc") or data.get("date") or "")
             if not date:
                 date = datetime.fromtimestamp(path.stat().st_mtime, UTC).date().isoformat()
@@ -33,7 +37,10 @@ def build(root: Path) -> str:
         "| File | Run ID | Date | Criterion / scenario | Evidence label |",
         "|---|---|---|---|---|",
     ]
-    lines.extend("| " + " | ".join(value.replace("|", "\\|") for value in row) + " |" for row in rows)
+    lines.extend(
+        "| " + " | ".join(value.replace("|", "\\|") for value in row) + " |"
+        for row in rows
+    )
     if not rows:
         lines.append("| *(no evidence files found)* | | | | |")
     return "\n".join(lines) + "\n"

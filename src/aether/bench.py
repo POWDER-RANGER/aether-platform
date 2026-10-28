@@ -143,6 +143,7 @@ def run_tick(duration_s: float, root: str | Path = "evidence") -> dict:
 
 
 def run_capture(duration_s: float, process: str, backend: str, root: str | Path = "evidence") -> dict:
+    """Run real DXcam capture; hardware path is UNVERIFIED until exercised on the owner MSI."""
     if duration_s <= 0:
         raise ValueError("duration_s must be positive")
     if not process:
@@ -280,6 +281,7 @@ def run_nonblocking(duration_s: float, supervisor_sleep_s: float, root: str | Pa
 
 
 def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: str | Path = "evidence") -> dict:
+    """Measure real local calls with synthetic input; GPU residency is UNVERIFIED until MSI execution."""
     if backend not in {"ollama", "nitrogen"}:
         raise ValueError("backend must be ollama or nitrogen")
     if calls < 1:
@@ -318,15 +320,19 @@ def run_inference(backend: str, calls: int = 5, concurrent: bool = False, root: 
 
                 instance = OllamaSupervisor()
 
-                def call():
+                def call_ollama():
                     return instance.assess({"synthetic": image}, "synthetic benchmark image", None, [])
+
+                call = call_ollama
             else:
                 from prrex.backends.nitrogen_reflex import NitrogenReflex
 
                 instance = NitrogenReflex()
 
-                def call():
+                def call_nitrogen():
                     return instance.act(image, None, 16)
+
+                call = call_nitrogen
             call()
             cold_ms = (time.perf_counter() - started) * 1000
             warm = []

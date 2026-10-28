@@ -60,3 +60,26 @@ def test_report_keeps_research_and_companion_separate(tmp_path) -> None:
     assert report["companion"]["count"] == 1
     assert report["research"]["raw_values"][0]["metrics"]["metric"] == "raw-r"
     assert "No pass/fail" in report["note"]
+
+
+def test_formal_scenario_refuses_changed_frozen_file(tmp_path) -> None:
+    import shutil
+
+    from aether.evaluation.scenarios import freeze
+
+    root = tmp_path / "scenarios"
+    shutil.copytree("configuration/scenarios", root)
+    lock = tmp_path / "thresholds.lock.json"
+    freeze(root, lock)
+    target = sorted(root.glob("*.yaml"))[0]
+    target.write_text(target.read_text(encoding="utf-8") + "\n# modified after freeze\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="frozen scenario files changed"):
+        run_scenario(
+            "SCN-01",
+            "research",
+            "configuration/platform/ENV-02.yaml",
+            root=root,
+            lock=lock,
+            input_fn=lambda _prompt: "y",
+            pipeline_runner=lambda _args: 0,
+        )

@@ -57,4 +57,4 @@ MIT for Æther's own code (`LICENSE`). Third-party components keep their own lic
 
 ## Implementation evidence boundary (2026-10-28)
 
-The runtime, perception, recording, supervisor, scorecard and Command Center scaffolding proposed in [draft PR #5](https://github.com/POWDER-RANGER/aether-platform/pull/5) is not part of `main` and is not verified. See [the dated repository inventory](docs/research/2026-10-28-inventory-and-evidence.md) for a subsystem-by-subsystem classification. Do not treat a draft PR, successful syntax compilation, or a passing unit test as hardware verification.
+The runtime, perception, recording, supervisor, scorecard and Command Center status is recorded in [the project status document](docs/STATUS.md). See [the dated repository inventory](docs/research/2026-10-28-inventory-and-evidence.md) for a subsystem-by-subsystem classification. Do not treat a draft PR, successful syntax compilation, or a passing unit test as hardware verification.

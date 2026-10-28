@@ -149,7 +149,7 @@ For every file, record: absolute path, relative path (where applicable), size in
 | GPU | NVIDIA RTX 4060 Laptop GPU, 8 GB VRAM | Hardware model/capacity recorded; current load and free VRAM unknown |
 | NitroGen weights | ng.pt, historically 1,974,723,762 bytes | Disk size record, not VRAM requirement |
 | Python | Python 3.11.16 project environment recorded | Exact active interpreter for current mainline must be rechecked |
-| Dependencies | Earlier environment recorded DXcam 0.3.0, NumPy 2.4.6, OpenCV 5.0.0.93, psutil 7.2.2, pyzmq 27.2.2 and vgamepad 0.1.0 | Historical version snapshot |
+| Dependencies | Earlier environment recorded DXcam 0.3.0, NumPy 2.4.6, OpenCV 5.0.0.93, psutil 7.2.2, pyzmq 27.2.0 and vgamepad 0.1.0 | Historical version snapshot |
 | Source control | Public GitHub repository and Actions CI | Four green jobs and 260 passing local tests are owner-reported for the current merged state |
 | Local security state | Log-sealing key and STOP path under .powder_ranger | Must remain machine-local |
 | Local model/dependency cache | NitroGen checkout, weights and cached wheels | Current occupancy not measured |

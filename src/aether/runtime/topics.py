@@ -1,5 +1,5 @@
 # DRAFT 2026-10-28 (bulk scaffold): NOT IMPLEMENTED-VERIFIED. Untested; refine + add tests before use. See docs/drafts/BULK-SCAFFOLD-2026-10-28.md
-"""In-process event bus. Every subsystem publishes; recording and the Command Center subscribe.
+"""In-process topic bus (telemetry). Distinct from the typed, persisted aether.runtime.events.EventBus (PR #4). REFINE: route durable records through EventBus. Every subsystem publishes; recording and the Command Center subscribe.
 
 Events are plain dicts so they serialise to JSONL unchanged. Publishing never blocks on a slow
 subscriber: each subscriber gets its own bounded queue; overflow drops the oldest and counts it.
@@ -29,7 +29,7 @@ class Subscription:
         return any(topic == t or (t.endswith("*") and topic.startswith(t[:-1])) for t in self.topics)
 
 
-class EventBus:
+class TopicBus:
     def __init__(self, clock: Callable[[], float] = time.monotonic, wall: Callable[[], float] = time.time):
         self._subs: list[Subscription] = []
         self._lock = threading.Lock()
@@ -69,7 +69,7 @@ class EventBus:
 class JsonlSink(threading.Thread):
     """Drains a subscription to a JSONL file. Stop with stop()."""
 
-    def __init__(self, bus: EventBus, path: str | Path, *topics: str):
+    def __init__(self, bus: TopicBus, path: str | Path, *topics: str):
         super().__init__(daemon=True, name=f"jsonl-sink:{Path(path).name}")
         self.sub = bus.subscribe(*topics)
         self.path = Path(path)

@@ -23,7 +23,7 @@ from aether.evaluation import scenarios as scn
 from aether.evaluation.scorecard import SCORECARD, Ledger, Result
 from aether.recording.replay import list_runs, summarize
 from aether.runtime.config import load_platform_settings
-from aether.runtime.events import EventBus
+from aether.runtime.topics import TopicBus
 
 
 def main(argv=None) -> int:
@@ -57,7 +57,7 @@ def main(argv=None) -> int:
         from aether.server.app import CommandCenter
 
         st = load_platform_settings(a.settings)
-        cc = CommandCenter(EventBus(), None, a.runs, Ledger(), st.server.host, st.server.port)
+        cc = CommandCenter(TopicBus(), None, a.runs, Ledger(), st.server.host, st.server.port)
         print(f"Command Center on http://{st.server.host}:{st.server.port}  (read-only)")
         cc.serve_forever()
     elif a.cmd == "runs":
@@ -98,7 +98,7 @@ def _companion(a) -> int:
     from prrex.supervisor.planner import Planner
 
     st = load_platform_settings(a.settings)
-    bus = EventBus()
+    bus = TopicBus()
     reflex = make_reflex(st.backends.reflex, **st.backends.reflex_options)
     sup = make_supervisor(st.backends.supervisor, **st.backends.supervisor_options)
     ident = RunIdentity.create(

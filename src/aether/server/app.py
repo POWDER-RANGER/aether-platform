@@ -23,15 +23,15 @@ from pathlib import Path
 
 from aether.evaluation.scorecard import Ledger
 from aether.recording.replay import list_runs, summarize
-from aether.runtime.events import EventBus
 from aether.runtime.lifecycle import Runtime
+from aether.runtime.topics import TopicBus
 
 REPO = Path(__file__).resolve().parents[3]
 
 
 class CommandCenter:
     def __init__(
-        self, bus: EventBus, runtime: Runtime | None, runs_root: str | Path, ledger: Ledger, host="127.0.0.1", port=8765
+        self, bus: TopicBus, runtime: Runtime | None, runs_root: str | Path, ledger: Ledger, host="127.0.0.1", port=8765
     ):
         self.bus, self.runtime, self.runs_root, self.ledger = bus, runtime, Path(runs_root), ledger
         self.recent: deque = deque(maxlen=500)

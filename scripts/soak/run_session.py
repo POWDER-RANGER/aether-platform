@@ -82,6 +82,7 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
     started_wall = datetime.now(timezone.utc).isoformat()
     started = time.monotonic()
     classification = "completed"
+    duration_complete = False
     hang_age = None
     exit_code = None
     heartbeat_samples = []
@@ -102,6 +103,7 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
             while child.poll() is None:
                 now = time.monotonic()
                 if now >= deadline:
+                    duration_complete = True
                     _stop_child(child)
                     break
                 if heartbeat.exists():
@@ -129,7 +131,7 @@ def run_one(settings: str, minutes: float, heartbeat_timeout: float, evidence_ro
                 _stop_child(child)
             exit_code = child.poll()
 
-    if classification == "completed" and exit_code not in (0, -signal.SIGINT):
+    if classification == "completed" and not duration_complete:
         classification = f"crashed({exit_code})"
     elif classification == "completed" and _has_stall_event(events_path):
         classification = "stalled"

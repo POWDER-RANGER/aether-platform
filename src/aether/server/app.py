@@ -157,8 +157,8 @@ table{{width:100%;border-collapse:collapse}}td,th{{padding:7px;border-bottom:1px
                 if path == "/scorecard":
                     body = '<p class="empty">Proposed thresholds are not frozen.</p><div id="score">loading…</div>'
                     script = """fetch('/api/scorecard').then(r=>r.json()).then(data=>{
-const rows=Object.values(data);document.getElementById('score').innerHTML='<table><tr><th>ID</th><th>Criterion</th><th>Status</th><th>Value</th><th>Proposed threshold</th><th>Evidence</th></tr>'+
-rows.map(x=>'<tr><td>'+x.criterion+'</td><td>'+x.title+'</td><td>'+x.status+'</td><td>'+(x.value||'no data')+'</td><td>'+x.proposed_threshold+'<br>'+x.threshold_status+'</td><td>'+(x.evidence||'no data')+'</td></tr>').join('')+'</table>';});"""
+const rows=Object.values(data);const esc=v=>String(v??'no data').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));document.getElementById('score').innerHTML='<table><tr><th>ID</th><th>Criterion</th><th>Status</th><th>Value</th><th>Proposed threshold</th><th>Evidence</th></tr>'+
+rows.map(x=>{const ev=x.evidence?'<a href="/evidence/'+String(x.evidence).replace(/^evidence\\//,'').split('/').map(encodeURIComponent).join('/')+'">open</a>':'no data';return '<tr><td>'+esc(x.criterion)+'</td><td>'+esc(x.title)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.value)+'</td><td>'+esc(x.proposed_threshold)+'<br>'+esc(x.threshold_status)+'</td><td>'+ev+'</td></tr>';}).join('')+'</table>';});"""
                     return self._bytes(cc._page("Engineering scorecard", body, script), "text/html; charset=utf-8")
                 if path == "/overlay":
                     body = '<div id="null" class="null-banner" hidden>NULL BACKEND — no model running</div><div class="columns"><section class="panel"><h2>Supervisor assessment</h2><pre id="assessment" class="empty">no data</pre></section><section class="panel"><h2>Reflex chunk</h2><pre id="reflex" class="empty">no data</pre></section></div>'
@@ -181,6 +181,10 @@ rows.map(x=>'<tr><td>'+x.criterion+'</td><td>'+x.title+'</td><td>'+x.status+'</t
                 if path.startswith("/design/"):
                     base = (REPO / "interfaces/shared/design").resolve()
                     target = (base / path[len("/design/") :]).resolve()
+                    return self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
+                if path.startswith("/evidence/"):
+                    base = (Path("evidence").resolve())
+                    target = (base / path[len("/evidence/") :]).resolve()
                     return self._file(target) if target.is_relative_to(base) else self._json({"error": "forbidden"}, 403)
                 parts = path.strip("/").split("/")
                 if len(parts) >= 3 and parts[:2] == ["api", "runs"]:

@@ -24,4 +24,5 @@ jobs:
       - run: python scripts/docs/check_docs.py
       - run: python -m pytest -q
       - run: ruff check .
+      - run: ruff format --diff scripts/docs/build_index.py scripts/docs/check_docs.py tests/docs/test_docs_tools.py || true
       - run: ruff format --check .

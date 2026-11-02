@@ -83,7 +83,7 @@ Earlier M1/M1.1 records document signed intent, Governor policy, hash-chained lo
 
 ### 6.1 Repository artifacts
 
-Repository root on the MSI, as recorded: C:\Users\ftrac\Aether\aether-platform\.
+Repository root on the MSI, as recorded: <WORKSTATION_ROOT>\aether-platform\.
 
 | Repository path | Purpose / artifact class |
 |---|---|
@@ -114,24 +114,24 @@ This is a consolidated list of known paths from repository records, not a fresh 
 
 ### 6.2 Known MSI-local artifacts
 
-Workstation root: C:\Users\ftrac\Aether\.
+Workstation root: <WORKSTATION_ROOT>\.
 
 | Exact recorded location | Artifact / purpose | Inventory status |
 |---|---|---|
-| C:\Users\ftrac\Aether\aether-platform\ | Active repository checkout | Path recorded; current contents not locally enumerated in this audit |
-| C:\Users\ftrac\Aether\powder-ranger-bot\ | Retired reference checkout; Python 3.11 environment used for earlier tests | Path recorded |
-| C:\Users\ftrac\Aether\NitroGen\ | Upstream NitroGen checkout and separate environment | Path recorded |
-| C:\Users\ftrac\Aether\weights\ng.pt | NitroGen model weights; earlier inventory recorded 1,974,723,762 bytes | Size is historical; current size/hash not rechecked |
-| C:\Users\ftrac\Aether\wheels\ | Cached Python wheels | Path recorded; file list not rechecked |
-| C:\Users\ftrac\Aether\ENVIRONMENT.md | Private workstation installation/environment record | Path recorded; contents intentionally not copied into public repository |
-| C:\Users\ftrac\Aether\runs\m1.1\ | M1.1 test reports and run outputs | Path recorded; recursive manifest outstanding |
-| C:\Users\ftrac\Aether\runs\m1.1\logs\kbmtest-*.jsonl | Keyboard/mouse intent and run logs | Pattern recorded; exact filenames and hashes outstanding |
-| C:\Users\ftrac\Aether\checks\m1\ | M1 check artifacts | Path recorded; recursive manifest outstanding |
-| C:\Users\ftrac\Aether\checks\design\ | Render probes, screenshots and one-off patch scripts | Path recorded; recursive manifest outstanding |
-| C:\Users\ftrac\Aether\powder-ranger.zip | Older extracted package archive | Historical/stale snapshot |
-| C:\Users\ftrac\Aether\*.ps1, *.log, *.done | Setup/test scripts, logs and completion markers | Pattern recorded; exact names outstanding |
-| C:\Users\ftrac\.powder_ranger\log.key | Machine-local intent-log sealing key | Sensitive; do not copy to repository or inventory its contents |
-| C:\Users\ftrac\.powder_ranger\ | STOP-file and runtime security state | Sensitive operational state; do not publish contents |
+| <WORKSTATION_ROOT>\aether-platform\ | Active repository checkout | Path recorded; current contents not locally enumerated in this audit |
+| <WORKSTATION_ROOT>\powder-ranger-bot\ | Retired reference checkout; Python 3.11 environment used for earlier tests | Path recorded |
+| <WORKSTATION_ROOT>\NitroGen\ | Upstream NitroGen checkout and separate environment | Path recorded |
+| <WORKSTATION_ROOT>\weights\ng.pt | NitroGen model weights; earlier inventory recorded 1,974,723,762 bytes | Size is historical; current size/hash not rechecked |
+| <WORKSTATION_ROOT>\wheels\ | Cached Python wheels | Path recorded; file list not rechecked |
+| <WORKSTATION_ROOT>\ENVIRONMENT.md | Private workstation installation/environment record | Path recorded; contents intentionally not copied into public repository |
+| <WORKSTATION_ROOT>\runs\m1.1\ | M1.1 test reports and run outputs | Path recorded; recursive manifest outstanding |
+| <WORKSTATION_ROOT>\runs\m1.1\logs\kbmtest-*.jsonl | Keyboard/mouse intent and run logs | Pattern recorded; exact filenames and hashes outstanding |
+| <WORKSTATION_ROOT>\checks\m1\ | M1 check artifacts | Path recorded; recursive manifest outstanding |
+| <WORKSTATION_ROOT>\checks\design\ | Render probes, screenshots and one-off patch scripts | Path recorded; recursive manifest outstanding |
+| <WORKSTATION_ROOT>\powder-ranger.zip | Older extracted package archive | Historical/stale snapshot |
+| <WORKSTATION_ROOT>\*.ps1, *.log, *.done | Setup/test scripts, logs and completion markers | Pattern recorded; exact names outstanding |
+| <USER_STATE_DIR>\<intent-log sealing key> | Machine-local intent-log sealing key | Sensitive; do not copy to repository or inventory its contents |
+| <USER_STATE_DIR>\ | STOP-file and runtime security state | Sensitive operational state; do not publish contents |
 
 No generated-file inventory can honestly be called comprehensive until the MSI is scanned recursively and each file is classified as tracked source, generated documentation, build output, test report, log, screenshot, model/cache, secret or disposable scratch. No unverified local path is inferred here.
 
